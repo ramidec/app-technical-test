@@ -42,7 +42,10 @@ Plans:
   1. User sees a header with the contact's avatar (initials circle), name, and subtitle — matching Figma spacing and typography
   2. User taps the phone icon on the right and sees it respond (icon is present and tappable)
   3. User taps the back chevron and navigates away from the chat screen
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 02-01-PLAN.md — Custom Stack header with avatar, name, subtitle, and phone icon in _layout.tsx
 
 ### Phase 3: Product Strategy
 **Goal**: PRODUCT_STRATEGY.md is a sharp, reviewable product document that demonstrates product thinking
@@ -63,5 +66,5 @@ Phases execute in numeric order: 1 → 2 → 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Chat Screen | 2/2 | Complete   | 2026-03-04 |
-| 2. Navigation Header | 0/TBD | Not started | - |
+| 2. Navigation Header | 0/1 | Not started | - |
 | 3. Product Strategy | 0/TBD | Not started | - |
