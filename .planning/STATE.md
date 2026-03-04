@@ -70,7 +70,8 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+1. **Discuss state management and animation options after Phase 2** (planning)
+   Post-Phase 2 discussion: explore state management approach, user's animation ideas, and Part 2 README strategic enhancements before formalizing Phase 3 plan.
 
 ### Blockers/Concerns
 
