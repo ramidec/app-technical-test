@@ -18,7 +18,7 @@ function ChatHeaderTitle() {
 
 function ChatHeaderLeft() {
   return (
-    <Pressable hitSlop={8} style={styles.backButton}>
+    <Pressable hitSlop={8}>
       <Ionicons name="chevron-back" size={28} color="#007AFF" />
     </Pressable>
   );
@@ -78,9 +78,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 12,
     color: "#8E8E93",
-  },
-  backButton: {
-    paddingLeft: 4,
   },
   phoneButton: {
     paddingRight: 4,
