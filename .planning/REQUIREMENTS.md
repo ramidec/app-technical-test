@@ -27,9 +27,9 @@
 
 ### Navigation Header
 
-- [ ] **NAV-01**: Header shows contact avatar (initials circle), name, and subtitle
-- [ ] **NAV-02**: Header has phone icon on the right
-- [ ] **NAV-03**: Header back button navigates back (chevron left)
+- [x] **NAV-01**: Header shows contact avatar (initials circle), name, and subtitle
+- [x] **NAV-02**: Header has phone icon on the right
+- [x] **NAV-03**: Header back button navigates back (chevron left)
 
 ### Keyboard Behavior
 
@@ -84,9 +84,9 @@
 | KBD-01 | Phase 1 | Complete |
 | KBD-02 | Phase 1 | Complete |
 | KBD-03 | Phase 1 | Complete |
-| NAV-01 | Phase 2 | Pending |
-| NAV-02 | Phase 2 | Pending |
-| NAV-03 | Phase 2 | Pending |
+| NAV-01 | Phase 2 | Complete |
+| NAV-02 | Phase 2 | Complete |
+| NAV-03 | Phase 2 | Complete |
 | STR-01 | Phase 3 | Pending |
 | STR-02 | Phase 3 | Pending |
 | STR-03 | Phase 3 | Pending |
