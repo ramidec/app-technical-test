@@ -14,7 +14,7 @@ export default function BottomFade() {
   return (
     <LinearGradient
       // From opaque white at top down to transparent at bottom
-      colors={['rgba(255,255,255,1)', 'rgba(255,255,255,0)']}
+      colors={['rgba(255,255,255,0)', 'rgba(255,255,255,1)']}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }}
       style={styles.container}

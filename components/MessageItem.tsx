@@ -37,10 +37,11 @@ const MessageItem = ({ message }: { message: Message }) => {
             isUser={isUser}
           />
         ))}
+
+        <Text style={[styles.timestamp, isUser ? styles.timestampRight : styles.timestampLeft]}>
+          {isSending ? 'Sending...' : timestamp}
+        </Text>
       </View>
-      <Text style={[styles.timestamp, isUser ? styles.timestampRight : styles.timestampLeft]}>
-        {isSending ? 'Sending...' : timestamp}
-      </Text>
     </Animated.View>
   );
 };
@@ -61,7 +62,7 @@ function AttachmentRenderer({ attachment, isUser }: { attachment: MessageAttachm
 const styles = StyleSheet.create({
   outerRow: {
     marginBottom: 8,
-    maxWidth: '75%',
+    maxWidth: 358,
   },
   outerRowLeft: {
     alignSelf: 'flex-start',
@@ -82,6 +83,7 @@ const styles = StyleSheet.create({
   },
   bubbleUser: {
     backgroundColor: '#E6FAF0',
+    width: 278,
   },
   bubbleSending: {
     opacity: 0.7,
@@ -101,7 +103,6 @@ const styles = StyleSheet.create({
     color: '#66807F',
     fontSize: 12,
     fontWeight: '500',
-    marginTop: 2,
   },
   timestampLeft: {
     textAlign: 'left',

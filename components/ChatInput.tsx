@@ -221,10 +221,10 @@ const styles = StyleSheet.create({
   chatbar: {
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
-    paddingTop: 16,
+    paddingTop: 24,
     paddingHorizontal: 12,
     paddingBottom: 8,
-    gap: 8,
+    gap: 12,
     shadowColor: '#002C2A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
