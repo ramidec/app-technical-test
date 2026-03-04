@@ -20,10 +20,10 @@
 
 ### Message Bubbles
 
-- [ ] **BUB-01**: Received (client) bubbles have light gray background (#E9E9EB), no border, 16px border radius
-- [ ] **BUB-02**: Sent (user) bubbles have iOS blue background (#007AFF), white text, 16px border radius
-- [ ] **BUB-03**: Bubble padding is 10px vertical, 14px horizontal
-- [ ] **BUB-04**: Timestamp displayed below each bubble in gray, small font (12px)
+- [x] **BUB-01**: Received (client) bubbles have light gray background (#E9E9EB), no border, 16px border radius
+- [x] **BUB-02**: Sent (user) bubbles have iOS blue background (#007AFF), white text, 16px border radius
+- [x] **BUB-03**: Bubble padding is 10px vertical, 14px horizontal
+- [x] **BUB-04**: Timestamp displayed below each bubble in gray, small font (12px)
 
 ### Navigation Header
 
@@ -77,10 +77,10 @@
 | INP-08 | Phase 1 | Pending |
 | INP-09 | Phase 1 | Pending |
 | INP-10 | Phase 1 | Pending |
-| BUB-01 | Phase 1 | Pending |
-| BUB-02 | Phase 1 | Pending |
-| BUB-03 | Phase 1 | Pending |
-| BUB-04 | Phase 1 | Pending |
+| BUB-01 | Phase 1 | Complete |
+| BUB-02 | Phase 1 | Complete |
+| BUB-03 | Phase 1 | Complete |
+| BUB-04 | Phase 1 | Complete |
 | KBD-01 | Phase 1 | Pending |
 | KBD-02 | Phase 1 | Pending |
 | KBD-03 | Phase 1 | Pending |
