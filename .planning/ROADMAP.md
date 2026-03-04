@@ -28,7 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User sends a message and the input resets to single-line height; sent bubbles appear in iOS blue, received bubbles in light gray, each with a timestamp below
   4. User opens the keyboard and the input slides up smoothly without layout jumps; dragging the message list dismisses the keyboard
   5. User sends a message and the list auto-scrolls to show it, with the input cleared above the home indicator
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Restyle MessageItem bubbles (colors, padding, radius, timestamps, max-width)
+- [ ] 01-02-PLAN.md — Wire ChatScreen auto-scroll, fix KAV offset, add demo messages
 
 ### Phase 2: Navigation Header
 **Goal**: The screen header matches the Figma design and provides standard navigation
@@ -58,6 +62,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Chat Screen | 0/TBD | Not started | - |
+| 1. Chat Screen | 0/2 | Not started | - |
 | 2. Navigation Header | 0/TBD | Not started | - |
 | 3. Product Strategy | 0/TBD | Not started | - |
