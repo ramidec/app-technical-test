@@ -17,6 +17,7 @@ import ChatInput from '@/components/ChatInput';
 import AttachmentSheet from '@/components/AttachmentSheet';
 import EmojiSheet from '@/components/EmojiSheet';
 import SkeletonMessages from '@/components/SkeletonMessages';
+import BottomFade from '@/components/BottomFade';
 import { useMessages } from '@/hooks/useMessages';
 import { useSendMessage } from '@/hooks/useSendMessage';
 
@@ -74,29 +75,32 @@ export default function ChatScreen() {
       >
         <StatusBar barStyle="dark-content" />
 
-        <FlashList
-          ref={flashListRef}
-          data={messages}
-          renderItem={({ item }) => <MessageItem message={item} />}
-          keyExtractor={(item) => item.id}
-          style={styles.list}
-          contentContainerStyle={styles.listContent}
-          maintainVisibleContentPosition={{
-            autoscrollToBottomThreshold: 0.2,
-            startRenderingFromBottom: true,
-          }}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.3}
-          ListHeaderComponent={
-            isFetchingNextPage ? (
-              <View style={styles.paginationLoader}>
-                <ActivityIndicator size="small" color="#8E8E93" />
-              </View>
-            ) : null
-          }
-        />
+        <View style={styles.listWrapper}>
+          <FlashList
+            ref={flashListRef}
+            data={messages}
+            renderItem={({ item }) => <MessageItem message={item} />}
+            keyExtractor={(item) => item.id}
+            style={styles.list}
+            contentContainerStyle={styles.listContent}
+            maintainVisibleContentPosition={{
+              autoscrollToBottomThreshold: 0.2,
+              startRenderingFromBottom: true,
+            }}
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
+            onEndReached={handleEndReached}
+            onEndReachedThreshold={0.3}
+            ListHeaderComponent={
+              isFetchingNextPage ? (
+                <View style={styles.paginationLoader}>
+                  <ActivityIndicator size="small" color="#8E8E93" />
+                </View>
+              ) : null
+            }
+          />
+          <BottomFade />
+        </View>
 
         <ChatInput
           onSend={handleSend}
@@ -104,7 +108,6 @@ export default function ChatScreen() {
           onEmojiPress={handleEmojiPress}
           pendingEmoji={pendingEmoji}
           onPendingEmojiConsumed={() => setPendingEmoji('')}
-          placeholder="Type your message..."
         />
       </KeyboardAvoidingView>
 
@@ -117,23 +120,29 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+    backgroundColor: '#FFFFFF',
   },
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#FFFFFF',
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  listWrapper: {
+    flex: 1,
   },
   list: {
     flex: 1,
   },
   listContent: {
-    padding: 16,
-    paddingBottom: 8,
+    paddingTop: 8,
+    paddingRight: 16,
+    paddingBottom: 32,
+    paddingLeft: 16,
   },
   paginationLoader: {
     paddingVertical: 12,

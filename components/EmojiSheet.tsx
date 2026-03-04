@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useMemo } from 'react';
+import React, { forwardRef, useCallback, useMemo, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import BottomSheet, { BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import type { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
@@ -11,6 +11,7 @@ interface EmojiSheetProps {
 
 const EmojiSheet = forwardRef<BottomSheet, EmojiSheetProps>(({ onEmojiSelected }, ref) => {
   const snapPoints = useMemo(() => ['50%', '80%'], []);
+  const [isOpen, setIsOpen] = useState(false);
 
   const renderBackdrop = useCallback(
     (props: BottomSheetDefaultBackdropProps) => (
@@ -25,7 +26,9 @@ const EmojiSheet = forwardRef<BottomSheet, EmojiSheetProps>(({ onEmojiSelected }
   );
 
   const handleSheetChange = useCallback((index: number) => {
-    if (index >= 0) {
+    const open = index >= 0;
+    setIsOpen(open);
+    if (open) {
       hapticSelection();
     }
   }, []);
@@ -47,9 +50,9 @@ const EmojiSheet = forwardRef<BottomSheet, EmojiSheetProps>(({ onEmojiSelected }
             hapticSelection();
             onEmojiSelected(emojiObject.emoji);
           }}
-          open={true}
+          open={isOpen}
           onClose={() => {
-            // Sheet handles close via pan
+            (ref as React.RefObject<BottomSheet>)?.current?.close();
           }}
           enableSearchBar
           enableRecentlyUsed

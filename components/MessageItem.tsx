@@ -72,33 +72,36 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   bubble: {
-    borderRadius: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    borderRadius: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    gap: 4,
   },
   bubbleClient: {
-    backgroundColor: '#E9E9EB',
+    backgroundColor: '#F2F4F4',
   },
   bubbleUser: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#E6FAF0',
   },
   bubbleSending: {
     opacity: 0.7,
   },
   messageText: {
     fontSize: 16,
-    fontWeight: '400',
+    fontWeight: '500',
+    lineHeight: 20,
   },
   messageTextClient: {
-    color: '#1C1C1E',
+    color: '#002C2A',
   },
   messageTextUser: {
-    color: '#FFFFFF',
+    color: '#002C2A',
   },
   timestamp: {
-    color: '#8E8E93',
+    color: '#66807F',
     fontSize: 12,
-    marginTop: 4,
+    fontWeight: '500',
+    marginTop: 2,
   },
   timestampLeft: {
     textAlign: 'left',

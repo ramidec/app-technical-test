@@ -16,13 +16,15 @@ const queryClient = new QueryClient({
 
 function ChatHeaderTitle() {
   return (
-    <View style={styles.headerTitleContainer}>
+    <View style={styles.titlePill}>
+      {/* Contact avatar */}
       <View style={styles.avatar}>
         <Text style={styles.avatarText}>AV</Text>
       </View>
+      {/* Name + subtitle */}
       <View style={styles.textColumn}>
-        <Text style={styles.name}>Alexandra Voltec</Text>
-        <Text style={styles.subtitle}>Active now</Text>
+        <Text style={styles.name} numberOfLines={1}>Alexandra Velcaz</Text>
+        <Text style={styles.subtitle} numberOfLines={1}>NextGen Dynamics</Text>
       </View>
     </View>
   );
@@ -31,7 +33,7 @@ function ChatHeaderTitle() {
 function ChatHeaderLeft() {
   return (
     <Pressable hitSlop={8}>
-      <Ionicons name="chevron-back" size={28} color="#007AFF" />
+      <Ionicons name="chevron-back" size={24} color="#002C2A" />
     </Pressable>
   );
 }
@@ -40,10 +42,9 @@ function ChatHeaderRight() {
   return (
     <Pressable
       hitSlop={8}
-      onPress={() => Alert.alert("Calling...", "Alexandra Voltec")}
-      style={styles.phoneButton}
+      onPress={() => Alert.alert("Calling...", "Alexandra Velcaz")}
     >
-      <Ionicons name="call" size={22} color="#007AFF" />
+      <Ionicons name="call-outline" size={24} color="#002C2A" />
     </Pressable>
   );
 }
@@ -58,6 +59,9 @@ export default function RootLayout() {
               headerLeft: () => <ChatHeaderLeft />,
               headerTitle: () => <ChatHeaderTitle />,
               headerRight: () => <ChatHeaderRight />,
+              headerStyle: styles.header,
+              headerShadowVisible: false,
+              // Custom shadow via headerStyle
             }}
           />
         </KeyboardProvider>
@@ -70,37 +74,54 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  headerTitleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+  header: {
+    backgroundColor: '#FFFFFF',
+    // Shadow matching design spec: y:2, blur:24, color:#002C2A, opacity:0.08
+    shadowColor: '#002C2A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 4,
+  },
+  titlePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 36,
+    paddingTop: 4,
+    paddingBottom: 4,
+    paddingLeft: 4,
+    paddingRight: 12,
     gap: 8,
+    height: 44,
   },
   avatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: "#5E5CE6",
-    alignItems: "center",
-    justifyContent: "center",
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F2F4F4',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "600",
+    color: '#66807F',
+    fontSize: 12,
+    fontWeight: '600',
   },
   textColumn: {
-    flexDirection: "column",
+    flexDirection: 'column',
+    gap: 2,
   },
   name: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#000000",
+    fontWeight: '600',
+    color: '#002C2A',
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 12,
-    color: "#8E8E93",
-  },
-  phoneButton: {
-    paddingRight: 4,
+    fontWeight: '500',
+    color: '#66807F',
+    textAlign: 'center',
   },
 });

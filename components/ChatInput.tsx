@@ -13,19 +13,17 @@ import Animated, {
   withSpring,
   withTiming,
   withSequence,
-  FadeIn,
-  FadeOut,
-  ZoomIn,
-  ZoomOut,
+  interpolate,
+  interpolateColor,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { hapticImpact, hapticSelection } from '@/utils/haptics';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 
-const MIN_HEIGHT = 40;
-const MAX_HEIGHT = 140;
-const SPRING_CONFIG = { damping: 15, stiffness: 150, mass: 0.5 } as const;
+const MIN_HEIGHT = 19;
+const MAX_HEIGHT = 120;
+const SPRING_CONFIG = { damping: 20, stiffness: 200, mass: 0.5 } as const;
 
 interface ChatInputProps {
   onSend: (text: string) => void;
@@ -42,10 +40,13 @@ export default function ChatInput({
   onEmojiPress,
   pendingEmoji,
   onPendingEmojiConsumed,
-  placeholder = 'Type your message...',
+  placeholder = 'Text Alexandra',
 }: ChatInputProps) {
   const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
+  const [scrollEnabled, setScrollEnabled] = useState(false);
+
+  const inputHeight = useSharedValue(MIN_HEIGHT);
 
   // Append emoji from picker
   useEffect(() => {
@@ -54,9 +55,6 @@ export default function ChatInput({
       onPendingEmojiConsumed?.();
     }
   }, [pendingEmoji, onPendingEmojiConsumed]);
-  const [scrollEnabled, setScrollEnabled] = useState(false);
-
-  const inputHeight = useSharedValue(MIN_HEIGHT);
 
   const hasText = text.trim().length > 0;
 
@@ -95,36 +93,33 @@ export default function ChatInput({
     height: inputHeight.value,
   }));
 
-  return (
-    <View style={[styles.container, { paddingBottom: insets.bottom + 10 }]}>
-      {/* Chat bar: action icons row */}
-      <View style={styles.chatBar}>
-        <ChatBarButton
-          icon="add-circle-outline"
-          onPress={handleAttachPress}
-        />
-        <ChatBarButton
-          icon="happy-outline"
-          onPress={handleEmojiPress}
-        />
-      </View>
+  const paddingBottom = Math.max(insets.bottom, 8) + 8;
 
-      {/* Input row */}
-      <View style={styles.row}>
-        <Animated.View style={[styles.inputWrapper, animatedInputStyle]}>
+  return (
+    <View style={[styles.container, { paddingBottom }]}>
+      <View style={styles.chatbar}>
+        {/* Text area */}
+        <Animated.View style={animatedInputStyle}>
           <TextInput
             style={styles.input}
             value={text}
             onChangeText={setText}
             placeholder={placeholder}
-            placeholderTextColor="#9FA0A4"
+            placeholderTextColor="#809594"
             multiline
             scrollEnabled={scrollEnabled}
             onContentSizeChange={handleContentSizeChange}
           />
         </Animated.View>
 
-        <SendButton hasText={hasText} onSend={handleSend} />
+        {/* Actions row */}
+        <View style={styles.actionsRow}>
+          <View style={styles.leftActions}>
+            <ChatBarButton icon="attach-outline" onPress={handleAttachPress} />
+            <ChatBarButton icon="happy-outline" onPress={handleEmojiPress} />
+          </View>
+          <SendButton hasText={hasText} onSend={handleSend} />
+        </View>
       </View>
     </View>
   );
@@ -147,12 +142,12 @@ function ChatBarButton({ icon, onPress }: ChatBarButtonProps) {
         pressed && styles.chatBarButtonPressed,
       ]}
     >
-      <Ionicons name={icon} size={24} color="#8E8E93" />
+      <Ionicons name={icon} size={22} color="#66807F" />
     </Pressable>
   );
 }
 
-// --- Send Button (animated enter/exit) ---
+// --- Send Button (animated state transitions) ---
 
 interface SendButtonProps {
   hasText: boolean;
@@ -160,11 +155,17 @@ interface SendButtonProps {
 }
 
 function SendButton({ hasText, onSend }: SendButtonProps) {
+  const progress = useSharedValue(0);
   const pressScale = useSharedValue(1);
 
+  useEffect(() => {
+    progress.value = withTiming(hasText ? 1 : 0, { duration: 200 });
+  }, [hasText, progress]);
+
   const handlePressIn = useCallback(() => {
-    pressScale.value = withTiming(0.85, { duration: 100 });
-  }, [pressScale]);
+    if (!hasText) return;
+    pressScale.value = withTiming(0.85, { duration: 80 });
+  }, [hasText, pressScale]);
 
   const handlePressOut = useCallback(() => {
     pressScale.value = withSequence(
@@ -173,37 +174,38 @@ function SendButton({ hasText, onSend }: SendButtonProps) {
     );
   }, [pressScale]);
 
-  const pressStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: pressScale.value }],
+  // Separate opacity into a wrapper so Reanimated layout animations don't conflict
+  const animatedOpacityStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.value, [0, 1], [0.35, 1.0]),
   }));
 
-  if (!hasText) {
-    return (
-      <Animated.View
-        key="send-disabled"
-        entering={FadeIn.duration(200)}
-        exiting={FadeOut.duration(150)}
-        style={styles.sendButtonDisabled}
-      >
-        <Ionicons name="arrow-up" size={18} color="#FFFFFF" />
-      </Animated.View>
+  const animatedButtonStyle = useAnimatedStyle(() => {
+    const scale = interpolate(progress.value, [0, 1], [0.92, 1.0]);
+    const backgroundColor = interpolateColor(
+      progress.value,
+      [0, 1],
+      ['#F2F4F4', '#002C2A']
     );
-  }
+    return {
+      transform: [{ scale: scale * pressScale.value }],
+      backgroundColor,
+    };
+  });
 
   return (
-    <Animated.View
-      key="send-active"
-      entering={ZoomIn.springify().damping(12)}
-      exiting={ZoomOut.duration(150)}
-    >
+    <Animated.View style={animatedOpacityStyle}>
       <Pressable
-        onPress={onSend}
+        onPress={hasText ? onSend : undefined}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         hitSlop={8}
       >
-        <Animated.View style={[styles.sendButton, pressStyle]}>
-          <Ionicons name="arrow-up" size={18} color="#FFFFFF" />
+        <Animated.View style={[styles.sendButton, animatedButtonStyle]}>
+          <Ionicons
+            name="arrow-up"
+            size={18}
+            color={hasText ? '#FFFFFF' : '#002C2A'}
+          />
         </Animated.View>
       </Pressable>
     </Animated.View>
@@ -212,17 +214,41 @@ function SendButton({ hasText, onSend }: SendButtonProps) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E5E5EA',
+    backgroundColor: 'transparent',
     paddingHorizontal: 16,
-    paddingTop: 6,
+    paddingTop: 8,
   },
-  chatBar: {
+  chatbar: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingTop: 16,
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+    gap: 8,
+    shadowColor: '#002C2A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 4,
+  },
+  input: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#002C2A',
+    textAlignVertical: 'top',
+    padding: 0,
+    margin: 0,
+  },
+  actionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 36,
+  },
+  leftActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingBottom: 6,
   },
   chatBarButton: {
     padding: 4,
@@ -231,43 +257,11 @@ const styles = StyleSheet.create({
   chatBarButtonPressed: {
     opacity: 0.5,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 10,
-  },
-  inputWrapper: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    justifyContent: 'center',
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: '#1C1C1E',
-    textAlignVertical: 'top',
-    paddingTop: 10,
-    paddingBottom: 10,
-  },
   sendButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: '#007AFF',
+    width: 36,
+    height: 36,
+    borderRadius: 100,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 3,
-  },
-  sendButtonDisabled: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: '#C7C7CC',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 3,
-    opacity: 0.5,
   },
 });
