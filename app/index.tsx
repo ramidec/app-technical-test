@@ -1,99 +1,79 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef, useCallback, useState } from 'react';
 import {
   StyleSheet,
   StatusBar,
-  KeyboardAvoidingView,
-  Platform,
   View,
+  ActivityIndicator,
+  Keyboard,
 } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
-import { Message, MessageRole } from '@/types/message';
+import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import BottomSheet from '@gorhom/bottom-sheet';
+import { Message } from '@/types/message';
 import MessageItem from '@/components/MessageItem';
 import ChatInput from '@/components/ChatInput';
-import BottomFade from '@/components/BottomFade';
-
-const initialMessages: Message[] = [
-  {
-    id: '1',
-    role: MessageRole.Client,
-    content: "Hey! Are you free to catch up this afternoon? I wanted to go over the project timeline with you before the team meeting tomorrow.",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    role: MessageRole.User,
-    content: "Sure, I'm free after 2pm.",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    role: MessageRole.Client,
-    content: "Perfect. Let's say 2:30?",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '4',
-    role: MessageRole.User,
-    content: "Works for me. Should we do a video call or just voice?",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '5',
-    role: MessageRole.Client,
-    content: "Video would be better — I'll share my screen to walk through the Figma designs.",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '6',
-    role: MessageRole.User,
-    content: "Sounds good, I'll send you the link.",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-  {
-    id: '7',
-    role: MessageRole.Client,
-    content: "Thanks! See you then.",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-];
+import AttachmentSheet from '@/components/AttachmentSheet';
+import EmojiSheet from '@/components/EmojiSheet';
+import SkeletonMessages from '@/components/SkeletonMessages';
+import { useMessages } from '@/hooks/useMessages';
+import { useSendMessage } from '@/hooks/useSendMessage';
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const flashListRef = useRef<FlashListRef<Message>>(null);
+  const attachmentSheetRef = useRef<BottomSheet>(null);
+  const emojiSheetRef = useRef<BottomSheet>(null);
+  const [pendingEmoji, setPendingEmoji] = useState('');
 
-  const handleSend = (text: string) => {
-    setMessages(prev => [...prev, {
-      id: Math.random().toString(36),
-      role: MessageRole.User,
-      content: text,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }]);
-    // Small timeout gives FlashList time to render the new item before scrolling
+  const { messages, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useMessages();
+  const sendMutation = useSendMessage();
+
+  const handleSend = useCallback((text: string) => {
+    sendMutation.mutate(text);
     setTimeout(() => {
       flashListRef.current?.scrollToEnd({ animated: true });
     }, 50);
-  };
+  }, [sendMutation]);
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const handleAttachPress = useCallback(() => {
+    Keyboard.dismiss();
+    attachmentSheetRef.current?.snapToIndex(0);
+  }, []);
+
+  const handleEmojiPress = useCallback(() => {
+    Keyboard.dismiss();
+    emojiSheetRef.current?.snapToIndex(0);
+  }, []);
+
+  const handleEmojiSelected = useCallback((emoji: string) => {
+    setPendingEmoji(prev => prev + emoji);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <SkeletonMessages />
+      </View>
+    );
+  }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={(Platform.OS === 'ios' ? insets.top : 0) + 56}
-    >
-      <StatusBar barStyle="dark-content" />
+    <View style={styles.root}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior="padding"
+        keyboardVerticalOffset={insets.top + 56}
+      >
+        <StatusBar barStyle="dark-content" />
 
-      <View style={styles.listContainer}>
         <FlashList
           ref={flashListRef}
           data={messages}
@@ -107,35 +87,56 @@ export default function ChatScreen() {
           }}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.3}
+          ListHeaderComponent={
+            isFetchingNextPage ? (
+              <View style={styles.paginationLoader}>
+                <ActivityIndicator size="small" color="#8E8E93" />
+              </View>
+            ) : null
+          }
         />
-        {/* Decorative white-to-transparent fade above input bar */}
-        <BottomFade />
-      </View>
 
-      <ChatInput
-        onSend={handleSend}
-        placeholder="Text Alexandra"
-      />
-    </KeyboardAvoidingView>
+        <ChatInput
+          onSend={handleSend}
+          onAttachPress={handleAttachPress}
+          onEmojiPress={handleEmojiPress}
+          pendingEmoji={pendingEmoji}
+          onPendingEmojiConsumed={() => setPendingEmoji('')}
+          placeholder="Type your message..."
+        />
+      </KeyboardAvoidingView>
+
+      <AttachmentSheet ref={attachmentSheetRef} />
+      <EmojiSheet ref={emojiSheetRef} onEmojiSelected={handleEmojiSelected} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F2F2F7',
   },
-  listContainer: {
+  loadingContainer: {
     flex: 1,
-    // Relative positioning so BottomFade can sit absolutely at its bottom
-    position: 'relative',
+    backgroundColor: '#F2F2F7',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   list: {
     flex: 1,
   },
   listContent: {
-    paddingTop: 8,
-    paddingHorizontal: 16,
-    paddingBottom: 32,
+    padding: 16,
+    paddingBottom: 8,
+  },
+  paginationLoader: {
+    paddingVertical: 12,
+    alignItems: 'center',
   },
 });
