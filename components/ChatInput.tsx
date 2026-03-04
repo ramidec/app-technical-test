@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   TextInput,
   Pressable,
   StyleSheet,
+  Keyboard,
   NativeSyntheticEvent,
   TextInputContentSizeChangeEventData,
 } from 'react-native';
@@ -15,7 +16,9 @@ import Animated, {
   withSequence,
   interpolate,
   interpolateColor,
+  runOnJS,
 } from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { hapticImpact, hapticSelection } from '@/utils/haptics';
@@ -24,6 +27,13 @@ import { ImpactFeedbackStyle } from 'expo-haptics';
 const MIN_HEIGHT = 19;
 const MAX_HEIGHT = 120;
 const SPRING_CONFIG = { damping: 20, stiffness: 200, mass: 0.5 } as const;
+const EXPAND_SPRING = { damping: 25, stiffness: 180, mass: 0.8 } as const;
+const SWIPE_THRESHOLD = 50;
+
+export interface ChatInputRef {
+  collapse: () => void;
+  focus: () => void;
+}
 
 interface ChatInputProps {
   onSend: (text: string) => void;
@@ -31,22 +41,29 @@ interface ChatInputProps {
   onEmojiPress?: () => void;
   pendingEmoji?: string;
   onPendingEmojiConsumed?: () => void;
+  onExpandedChange?: (expanded: boolean) => void;
   placeholder?: string;
+  maxExpandedHeight?: number;
 }
 
-export default function ChatInput({
+const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({
   onSend,
   onAttachPress,
   onEmojiPress,
   pendingEmoji,
   onPendingEmojiConsumed,
+  onExpandedChange,
   placeholder = 'Text Alexandra',
-}: ChatInputProps) {
+  maxExpandedHeight = 400,
+}, ref) => {
+  const textInputRef = useRef<TextInput>(null);
   const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
   const [scrollEnabled, setScrollEnabled] = useState(false);
+  const [isExpandedJS, setIsExpandedJS] = useState(false);
 
   const inputHeight = useSharedValue(MIN_HEIGHT);
+  const isExpanded = useSharedValue(0); // 0 = collapsed, 1 = expanded
 
   // Append emoji from picker
   useEffect(() => {
@@ -61,14 +78,60 @@ export default function ChatInput({
   const handleContentSizeChange = useCallback(
     (e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
       const h = e.nativeEvent.contentSize.height;
-      setScrollEnabled(h > MAX_HEIGHT);
-      inputHeight.value = withSpring(
-        Math.min(Math.max(h, MIN_HEIGHT), MAX_HEIGHT),
-        SPRING_CONFIG
-      );
+      if (!isExpandedJS) {
+        setScrollEnabled(h > MAX_HEIGHT);
+        inputHeight.value = withSpring(
+          Math.min(Math.max(h, MIN_HEIGHT), MAX_HEIGHT),
+          SPRING_CONFIG
+        );
+      }
     },
-    [inputHeight]
+    [inputHeight, isExpandedJS]
   );
+
+  const setExpandedTrue = useCallback(() => {
+    setIsExpandedJS(true);
+    onExpandedChange?.(true);
+  }, [onExpandedChange]);
+  const setExpandedFalse = useCallback(() => {
+    setIsExpandedJS(false);
+    onExpandedChange?.(false);
+  }, [onExpandedChange]);
+  const fireHapticMedium = useCallback(() => hapticImpact(ImpactFeedbackStyle.Medium), []);
+  const fireHapticLight = useCallback(() => hapticImpact(ImpactFeedbackStyle.Light), []);
+
+  const panGesture = Gesture.Pan()
+    .activeOffsetY([-15, 15])
+    .onEnd((event) => {
+      'worklet';
+      const swipedUp = event.translationY < -SWIPE_THRESHOLD;
+      const swipedDown = event.translationY > SWIPE_THRESHOLD;
+
+      if (swipedUp && isExpanded.value < 0.5) {
+        isExpanded.value = withSpring(1, EXPAND_SPRING);
+        runOnJS(setExpandedTrue)();
+        runOnJS(fireHapticMedium)();
+      } else if (swipedDown && isExpanded.value > 0.5) {
+        isExpanded.value = withSpring(0, EXPAND_SPRING);
+        runOnJS(setExpandedFalse)();
+        runOnJS(fireHapticLight)();
+      }
+    });
+
+  const collapse = useCallback(() => {
+    if (isExpandedJS) {
+      isExpanded.value = withSpring(0, EXPAND_SPRING);
+      setIsExpandedJS(false);
+      onExpandedChange?.(false);
+      Keyboard.dismiss();
+      hapticImpact(ImpactFeedbackStyle.Light);
+    }
+  }, [isExpandedJS, isExpanded, onExpandedChange]);
+
+  useImperativeHandle(ref, () => ({
+    collapse,
+    focus: () => textInputRef.current?.focus(),
+  }), [collapse]);
 
   const handleSend = useCallback(() => {
     if (!text.trim()) return;
@@ -77,7 +140,13 @@ export default function ChatInput({
     setText('');
     setScrollEnabled(false);
     inputHeight.value = withSpring(MIN_HEIGHT, SPRING_CONFIG);
-  }, [text, onSend, inputHeight]);
+    // Collapse if expanded
+    if (isExpandedJS) {
+      isExpanded.value = withSpring(0, EXPAND_SPRING);
+      setIsExpandedJS(false);
+      onExpandedChange?.(false);
+    }
+  }, [text, onSend, inputHeight, isExpanded, isExpandedJS, onExpandedChange]);
 
   const handleAttachPress = useCallback(() => {
     hapticSelection();
@@ -89,41 +158,70 @@ export default function ChatInput({
     onEmojiPress?.();
   }, [onEmojiPress]);
 
-  const animatedInputStyle = useAnimatedStyle(() => ({
-    height: inputHeight.value,
-  }));
+  // Animated styles
+  const animatedInputStyle = useAnimatedStyle(() => {
+    if (isExpanded.value > 0.5) {
+      // In expanded mode, let flex: 1 handle sizing
+      return { flex: 1 };
+    }
+    return { height: inputHeight.value };
+  });
+
+  const animatedChatbarStyle = useAnimatedStyle(() => {
+    const expandedMin = interpolate(
+      isExpanded.value,
+      [0, 1],
+      [0, maxExpandedHeight]
+    );
+    return {
+      minHeight: expandedMin > 0 ? expandedMin : undefined,
+    };
+  });
 
   const paddingBottom = Math.max(insets.bottom, 8) + 8;
 
   return (
     <View style={[styles.container, { paddingBottom }]}>
-      <View style={styles.chatbar}>
-        {/* Text area */}
-        <Animated.View style={animatedInputStyle}>
-          <TextInput
-            style={styles.input}
-            value={text}
-            onChangeText={setText}
-            placeholder={placeholder}
-            placeholderTextColor="#809594"
-            multiline
-            scrollEnabled={scrollEnabled}
-            onContentSizeChange={handleContentSizeChange}
-          />
-        </Animated.View>
+      <GestureDetector gesture={panGesture}>
+        <Animated.View style={[styles.chatbar, animatedChatbarStyle]}>
+          {/* Drag handle (visible when expanded) */}
+          {isExpandedJS && (
+            <View style={styles.dragHandle}>
+              <View style={styles.dragHandlePill} />
+            </View>
+          )}
 
-        {/* Actions row */}
-        <View style={styles.actionsRow}>
-          <View style={styles.leftActions}>
-            <ChatBarButton icon="attach-outline" onPress={handleAttachPress} />
-            <ChatBarButton icon="happy-outline" onPress={handleEmojiPress} />
+          {/* Text area */}
+          <Animated.View style={[animatedInputStyle, isExpandedJS && { flex: 1 }]}>
+            <TextInput
+              ref={textInputRef}
+              style={[styles.input, isExpandedJS && { flex: 1 }]}
+              value={text}
+              onChangeText={setText}
+              placeholder={placeholder}
+              placeholderTextColor="#809594"
+              multiline
+              scrollEnabled={scrollEnabled || isExpandedJS}
+              onContentSizeChange={handleContentSizeChange}
+            />
+          </Animated.View>
+
+          {/* Actions row */}
+          <View style={styles.actionsRow}>
+            <View style={styles.leftActions}>
+              <ChatBarButton icon="attach-outline" onPress={handleAttachPress} />
+              <ChatBarButton icon="happy-outline" onPress={handleEmojiPress} />
+            </View>
+            <SendButton hasText={hasText} onSend={handleSend} />
           </View>
-          <SendButton hasText={hasText} onSend={handleSend} />
-        </View>
-      </View>
+        </Animated.View>
+      </GestureDetector>
     </View>
   );
-}
+});
+
+ChatInput.displayName = 'ChatInput';
+export default ChatInput;
 
 // --- Chat Bar Button ---
 
@@ -174,7 +272,6 @@ function SendButton({ hasText, onSend }: SendButtonProps) {
     );
   }, [pressScale]);
 
-  // Separate opacity into a wrapper so Reanimated layout animations don't conflict
   const animatedOpacityStyle = useAnimatedStyle(() => ({
     opacity: interpolate(progress.value, [0, 1], [0.35, 1.0]),
   }));
@@ -230,6 +327,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 24,
     elevation: 4,
+  },
+  dragHandle: {
+    alignItems: 'center',
+    paddingBottom: 4,
+  },
+  dragHandlePill: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#C7C7CC',
   },
   input: {
     fontSize: 16,

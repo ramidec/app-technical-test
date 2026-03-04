@@ -52,6 +52,9 @@ function makeTime(minutesAgo: number): string {
   return new Date(Date.now() - minutesAgo * 60_000).toISOString();
 }
 
+const AVATAR_ALEXANDRA = 'https://i.pravatar.cc/56?u=alexandra';
+const AVATAR_GEORGE = 'https://i.pravatar.cc/56?u=george';
+
 const ALL_MESSAGES: Message[] = [
   // Page 1 (most recent)
   {
@@ -60,6 +63,8 @@ const ALL_MESSAGES: Message[] = [
     content: "Hey! Are you free to catch up this afternoon? I wanted to go over the project timeline before tomorrow's meeting.",
     createdAt: makeTime(42),
     updatedAt: makeTime(42),
+    senderName: 'Alexandra Velcaz',
+    senderAvatar: AVATAR_ALEXANDRA,
   },
   {
     id: 'msg-02',
@@ -67,6 +72,8 @@ const ALL_MESSAGES: Message[] = [
     content: "Sure, I'm free after 2pm.",
     createdAt: makeTime(40),
     updatedAt: makeTime(40),
+    senderName: 'George',
+    senderAvatar: AVATAR_GEORGE,
   },
   {
     id: 'msg-03',
@@ -74,6 +81,8 @@ const ALL_MESSAGES: Message[] = [
     content: "Perfect. Let's say 2:30? I'll share the Figma designs on the call.",
     createdAt: makeTime(38),
     updatedAt: makeTime(38),
+    senderName: 'Alexandra Velcaz',
+    senderAvatar: AVATAR_ALEXANDRA,
   },
   {
     id: 'msg-04',
@@ -82,6 +91,8 @@ const ALL_MESSAGES: Message[] = [
     createdAt: makeTime(35),
     updatedAt: makeTime(35),
     attachments: [SAMPLE_IMAGE],
+    senderName: 'George',
+    senderAvatar: AVATAR_GEORGE,
   },
   {
     id: 'msg-05',
@@ -90,14 +101,27 @@ const ALL_MESSAGES: Message[] = [
     createdAt: makeTime(32),
     updatedAt: makeTime(32),
     attachments: [SAMPLE_VIDEO],
+    senderName: 'Alexandra Velcaz',
+    senderAvatar: AVATAR_ALEXANDRA,
   },
   {
     id: 'msg-06',
     role: MessageRole.User,
-    content: "That's really helpful, thanks. Let me send you a voice note with my thoughts.",
+    content: "That's really helpful, thanks.",
     createdAt: makeTime(28),
     updatedAt: makeTime(28),
+    senderName: 'George',
+    senderAvatar: AVATAR_GEORGE,
+  },
+  {
+    id: 'msg-06b',
+    role: MessageRole.User,
+    content: "Let me send you a voice note with my thoughts.",
+    createdAt: makeTime(27),
+    updatedAt: makeTime(27),
     attachments: [SAMPLE_AUDIO],
+    senderName: 'George',
+    senderAvatar: AVATAR_GEORGE,
   },
   {
     id: 'msg-07',
@@ -106,6 +130,8 @@ const ALL_MESSAGES: Message[] = [
     createdAt: makeTime(25),
     updatedAt: makeTime(25),
     attachments: [SAMPLE_FILE],
+    senderName: 'Alexandra Velcaz',
+    senderAvatar: AVATAR_ALEXANDRA,
   },
   // Page 2 (older)
   {
@@ -114,6 +140,8 @@ const ALL_MESSAGES: Message[] = [
     content: "Thanks, downloading now. The timeline looks tight but doable if we scope Phase 1 properly.",
     createdAt: makeTime(22),
     updatedAt: makeTime(22),
+    senderName: 'George',
+    senderAvatar: AVATAR_GEORGE,
   },
   {
     id: 'msg-09',
@@ -122,6 +150,8 @@ const ALL_MESSAGES: Message[] = [
     createdAt: makeTime(18),
     updatedAt: makeTime(18),
     attachments: [SAMPLE_IMAGE_2],
+    senderName: 'Alexandra Velcaz',
+    senderAvatar: AVATAR_ALEXANDRA,
   },
   {
     id: 'msg-10',
@@ -129,13 +159,26 @@ const ALL_MESSAGES: Message[] = [
     content: "Love it. The expandable input and the send button animation are key. I'll prototype those today.",
     createdAt: makeTime(15),
     updatedAt: makeTime(15),
+    senderName: 'George',
+    senderAvatar: AVATAR_GEORGE,
   },
   {
     id: 'msg-11',
     role: MessageRole.Client,
-    content: "Sounds good! Let me know if you need the design tokens. I'll push them to the shared Figma file.",
+    content: "Sounds good! Let me know if you need the design tokens.",
     createdAt: makeTime(12),
     updatedAt: makeTime(12),
+    senderName: 'Alexandra Velcaz',
+    senderAvatar: AVATAR_ALEXANDRA,
+  },
+  {
+    id: 'msg-11b',
+    role: MessageRole.Client,
+    content: "I'll push them to the shared Figma file.",
+    createdAt: makeTime(11),
+    updatedAt: makeTime(11),
+    senderName: 'Alexandra Velcaz',
+    senderAvatar: AVATAR_ALEXANDRA,
   },
   {
     id: 'msg-12',
@@ -143,6 +186,8 @@ const ALL_MESSAGES: Message[] = [
     content: "Will do. See you at 2:30!",
     createdAt: makeTime(10),
     updatedAt: makeTime(10),
+    senderName: 'George',
+    senderAvatar: AVATAR_GEORGE,
   },
   {
     id: 'msg-13',
@@ -150,6 +195,8 @@ const ALL_MESSAGES: Message[] = [
     content: "See you then! 👋",
     createdAt: makeTime(8),
     updatedAt: makeTime(8),
+    senderName: 'Alexandra Velcaz',
+    senderAvatar: AVATAR_ALEXANDRA,
   },
 ];
 
@@ -187,5 +234,7 @@ export async function sendMessage(content: string): Promise<Message> {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
     status: 'sent',
+    senderName: 'George',
+    senderAvatar: AVATAR_GEORGE,
   };
 }

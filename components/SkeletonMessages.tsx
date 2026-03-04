@@ -2,50 +2,58 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { MotiView } from 'moti';
 
-const SKELETON_COLOR = '#E5E5EA';
-const HIGHLIGHT_COLOR = '#F2F2F7';
+const COLOR_A = '#DDE1E1';
+const COLOR_B = '#EEF0F0';
 
-function SkeletonBone({
+function Bone({
   width,
   height,
   borderRadius = 8,
   delay = 0,
 }: {
-  width: number | string;
+  width: number;
   height: number;
   borderRadius?: number;
   delay?: number;
 }) {
   return (
     <MotiView
-      from={{ opacity: 0.4 }}
-      animate={{ opacity: 1 }}
+      from={{ backgroundColor: COLOR_A }}
+      animate={{ backgroundColor: COLOR_B }}
       transition={{
         type: 'timing',
-        duration: 800,
+        duration: 1100,
         loop: true,
         delay,
+        repeatReverse: true,
       }}
-      style={[
-        styles.bone,
-        {
-          width: width as number,
-          height,
-          borderRadius,
-        },
-      ]}
+      style={{ width, height, borderRadius }}
     />
   );
 }
 
-function SkeletonMessage({ isRight, delay }: { isRight: boolean; delay: number }) {
+function SkeletonRow({
+  isRight,
+  widths,
+  showAvatar,
+  delay,
+}: {
+  isRight: boolean;
+  widths: number[];
+  showAvatar: boolean;
+  delay: number;
+}) {
   return (
-    <View style={[styles.messageRow, isRight && styles.messageRowRight]}>
-      {!isRight && <SkeletonBone width={36} height={36} borderRadius={18} delay={delay} />}
-      <View style={[styles.lines, isRight && styles.linesRight]}>
-        <SkeletonBone width={isRight ? 100 : 120} height={14} delay={delay + 100} />
-        <SkeletonBone width={isRight ? 160 : 200} height={14} delay={delay + 200} />
-        {!isRight && <SkeletonBone width={140} height={14} delay={delay + 300} />}
+    <View style={[styles.outerRow, isRight ? styles.outerRowRight : styles.outerRowLeft]}>
+      <View style={[styles.messageRow, { flexDirection: isRight ? 'row-reverse' : 'row' }]}>
+        <View style={styles.avatarCol}>
+          {showAvatar && <Bone width={28} height={28} borderRadius={14} delay={delay} />}
+        </View>
+        <View style={[styles.lines, isRight ? styles.linesRight : styles.linesLeft]}>
+          {widths.map((w, i) => (
+            <Bone key={i} width={w} height={14} borderRadius={7} delay={delay + i * 70} />
+          ))}
+        </View>
       </View>
     </View>
   );
@@ -54,11 +62,15 @@ function SkeletonMessage({ isRight, delay }: { isRight: boolean; delay: number }
 export default function SkeletonMessages() {
   return (
     <View style={styles.container}>
-      <SkeletonMessage isRight={false} delay={0} />
-      <SkeletonMessage isRight={true} delay={200} />
-      <SkeletonMessage isRight={false} delay={400} />
-      <SkeletonMessage isRight={true} delay={600} />
-      <SkeletonMessage isRight={false} delay={800} />
+      <SkeletonRow isRight={false} widths={[160, 230, 100]} showAvatar={true}  delay={0} />
+      <SkeletonRow isRight={true}  widths={[140]}           showAvatar={true}  delay={100} />
+      <SkeletonRow isRight={false} widths={[200, 180]}      showAvatar={true}  delay={200} />
+      <SkeletonRow isRight={true}  widths={[180, 130]}      showAvatar={false} delay={300} />
+      <SkeletonRow isRight={true}  widths={[110]}           showAvatar={true}  delay={400} />
+      <SkeletonRow isRight={false} widths={[190, 220, 120]} showAvatar={false} delay={500} />
+      <SkeletonRow isRight={false} widths={[170]}           showAvatar={true}  delay={600} />
+      <SkeletonRow isRight={true}  widths={[150, 110]}      showAvatar={true}  delay={700} />
+      <SkeletonRow isRight={false} widths={[130]}           showAvatar={true}  delay={800} />
     </View>
   );
 }
@@ -66,26 +78,36 @@ export default function SkeletonMessages() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    gap: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 40,
+    gap: 12,
+  },
+  outerRow: {
+    maxWidth: 300,
+  },
+  outerRowLeft: {
+    alignSelf: 'flex-start',
+  },
+  outerRowRight: {
+    alignSelf: 'flex-end',
   },
   messageRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-    maxWidth: '75%',
+    gap: 6,
+    alignItems: 'flex-end',
   },
-  messageRowRight: {
-    alignSelf: 'flex-end',
-    flexDirection: 'row-reverse',
+  avatarCol: {
+    width: 28,
+    height: 28,
+    justifyContent: 'flex-end',
   },
   lines: {
     gap: 6,
   },
+  linesLeft: {
+    alignItems: 'flex-start',
+  },
   linesRight: {
     alignItems: 'flex-end',
-  },
-  bone: {
-    backgroundColor: SKELETON_COLOR,
   },
 });

@@ -53,6 +53,8 @@ export interface Message {
   updatedAt: string;
   attachments?: MessageAttachment[];
   status?: 'sending' | 'sent' | 'failed';
+  senderName?: string;
+  senderAvatar?: string;
 }
 
 // --- Pagination ---

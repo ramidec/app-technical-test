@@ -27,6 +27,8 @@ export function useSendMessage() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         status: 'sending',
+        senderName: 'George',
+        senderAvatar: 'https://i.pravatar.cc/56?u=george',
       };
 
       queryClient.setQueryData<InfiniteData<MessagesPage>>(

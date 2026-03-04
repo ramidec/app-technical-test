@@ -44,7 +44,7 @@ function ChatHeaderRight() {
       hitSlop={8}
       onPress={() => Alert.alert("Calling...", "Alexandra Velcaz")}
     >
-      <Ionicons name="call-outline" size={24} color="#002C2A" />
+      <Ionicons name="call" size={24} color="#002C2A" />
     </Pressable>
   );
 }
@@ -116,12 +116,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#002C2A',
-    textAlign: 'center',
+    textAlign: 'left',
   },
   subtitle: {
     fontSize: 12,
     fontWeight: '500',
     color: '#66807F',
-    textAlign: 'center',
+    textAlign: 'left',
   },
 });

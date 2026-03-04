@@ -1,19 +1,20 @@
-import React, { useRef, useCallback, useState } from 'react';
+import React, { useRef, useCallback, useState, useMemo } from 'react';
 import {
   StyleSheet,
   StatusBar,
   View,
   ActivityIndicator,
   Keyboard,
+  Pressable,
 } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
 import BottomSheet from '@gorhom/bottom-sheet';
-import { Message } from '@/types/message';
 import MessageItem from '@/components/MessageItem';
-import ChatInput from '@/components/ChatInput';
+import { computeMessageGrouping, MessageWithGrouping } from '@/utils/messageGrouping';
+import ChatInput, { ChatInputRef } from '@/components/ChatInput';
 import AttachmentSheet from '@/components/AttachmentSheet';
 import EmojiSheet from '@/components/EmojiSheet';
 import SkeletonMessages from '@/components/SkeletonMessages';
@@ -23,13 +24,17 @@ import { useSendMessage } from '@/hooks/useSendMessage';
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
-  const flashListRef = useRef<FlashListRef<Message>>(null);
+  const flashListRef = useRef<FlashListRef<MessageWithGrouping>>(null);
+  const chatInputRef = useRef<ChatInputRef>(null);
   const attachmentSheetRef = useRef<BottomSheet>(null);
   const emojiSheetRef = useRef<BottomSheet>(null);
   const [pendingEmoji, setPendingEmoji] = useState('');
+  const [availableHeight, setAvailableHeight] = useState(0);
+  const [isInputExpanded, setIsInputExpanded] = useState(false);
 
   const { messages, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useMessages();
   const sendMutation = useSendMessage();
+  const groupedMessages = useMemo(() => computeMessageGrouping(messages), [messages]);
 
   const handleSend = useCallback((text: string) => {
     sendMutation.mutate(text);
@@ -56,6 +61,10 @@ export default function ChatScreen() {
 
   const handleEmojiSelected = useCallback((emoji: string) => {
     setPendingEmoji(prev => prev + emoji);
+    emojiSheetRef.current?.close();
+    setTimeout(() => {
+      chatInputRef.current?.focus();
+    }, 100);
   }, []);
 
   if (isLoading) {
@@ -72,20 +81,22 @@ export default function ChatScreen() {
         style={styles.container}
         behavior="padding"
         keyboardVerticalOffset={insets.top + 56}
+        onLayout={(e) => setAvailableHeight(e.nativeEvent.layout.height)}
       >
         <StatusBar barStyle="dark-content" />
 
         <View style={styles.listWrapper}>
-          <FlashList
+          <FlashList<MessageWithGrouping>
             ref={flashListRef}
-            data={messages}
-            renderItem={({ item }) => <MessageItem message={item} />}
+            data={groupedMessages}
+            renderItem={({ item }) => <MessageItem message={item} isLastInGroup={item.isLastInGroup} />}
             keyExtractor={(item) => item.id}
+            estimatedItemSize={80}
+            initialScrollIndex={groupedMessages.length > 0 ? groupedMessages.length - 1 : undefined}
             style={styles.list}
             contentContainerStyle={styles.listContent}
             maintainVisibleContentPosition={{
-              autoscrollToBottomThreshold: 0.2,
-              startRenderingFromBottom: true,
+              autoscrollToTopThreshold: 10,
             }}
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
@@ -100,14 +111,25 @@ export default function ChatScreen() {
             }
           />
           <BottomFade />
+          {isInputExpanded && (
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={() => {
+                chatInputRef.current?.collapse();
+              }}
+            />
+          )}
         </View>
 
         <ChatInput
+          ref={chatInputRef}
           onSend={handleSend}
           onAttachPress={handleAttachPress}
           onEmojiPress={handleEmojiPress}
           pendingEmoji={pendingEmoji}
           onPendingEmojiConsumed={() => setPendingEmoji('')}
+          onExpandedChange={setIsInputExpanded}
+          maxExpandedHeight={availableHeight > 0 ? availableHeight * 0.7 : undefined}
         />
       </KeyboardAvoidingView>
 
@@ -129,8 +151,6 @@ const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   listWrapper: {
     flex: 1,

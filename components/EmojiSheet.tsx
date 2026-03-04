@@ -1,8 +1,12 @@
-import React, { forwardRef, useCallback, useMemo, useState } from 'react';
+import React, { forwardRef, useCallback, useMemo } from 'react';
 import { StyleSheet } from 'react-native';
-import BottomSheet, { BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import BottomSheet, {
+  BottomSheetView,
+  BottomSheetBackdrop,
+  useBottomSheetSpringConfigs,
+} from '@gorhom/bottom-sheet';
 import type { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
-import EmojiPicker from 'rn-emoji-keyboard';
+import { EmojiKeyboard } from 'rn-emoji-keyboard';
 import { hapticSelection } from '@/utils/haptics';
 
 interface EmojiSheetProps {
@@ -11,7 +15,15 @@ interface EmojiSheetProps {
 
 const EmojiSheet = forwardRef<BottomSheet, EmojiSheetProps>(({ onEmojiSelected }, ref) => {
   const snapPoints = useMemo(() => ['50%', '80%'], []);
-  const [isOpen, setIsOpen] = useState(false);
+
+  const animationConfigs = useBottomSheetSpringConfigs({
+    damping: 80,
+    stiffness: 400,
+    mass: 0.5,
+    overshootClamping: false,
+    restDisplacementThreshold: 0.1,
+    restSpeedThreshold: 0.1,
+  });
 
   const renderBackdrop = useCallback(
     (props: BottomSheetDefaultBackdropProps) => (
@@ -26,11 +38,7 @@ const EmojiSheet = forwardRef<BottomSheet, EmojiSheetProps>(({ onEmojiSelected }
   );
 
   const handleSheetChange = useCallback((index: number) => {
-    const open = index >= 0;
-    setIsOpen(open);
-    if (open) {
-      hapticSelection();
-    }
+    if (index >= 0) hapticSelection();
   }, []);
 
   return (
@@ -41,18 +49,15 @@ const EmojiSheet = forwardRef<BottomSheet, EmojiSheetProps>(({ onEmojiSelected }
       enablePanDownToClose
       backdropComponent={renderBackdrop}
       onChange={handleSheetChange}
+      animationConfigs={animationConfigs}
       handleIndicatorStyle={styles.indicator}
       backgroundStyle={styles.sheetBackground}
     >
       <BottomSheetView style={styles.content}>
-        <EmojiPicker
+        <EmojiKeyboard
           onEmojiSelected={(emojiObject) => {
             hapticSelection();
             onEmojiSelected(emojiObject.emoji);
-          }}
-          open={isOpen}
-          onClose={() => {
-            (ref as React.RefObject<BottomSheet>)?.current?.close();
           }}
           enableSearchBar
           enableRecentlyUsed
