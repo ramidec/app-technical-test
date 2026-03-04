@@ -7,16 +7,16 @@
 
 ### Input Design
 
-- [ ] **INP-01**: Chat input container has white background with hairline top border (#E5E5EA)
-- [ ] **INP-02**: TextInput is borderless, multiline, with gray placeholder text (#9FA0A4)
-- [ ] **INP-03**: Input height grows smoothly from 1 line (40px) to max 5 lines (~120px) using spring animation
-- [ ] **INP-04**: Input becomes scrollable when content exceeds max height
-- [ ] **INP-05**: Send button is a dark (#1C1C1E) circle (34px) with white arrow-up icon, bottom-anchored in row
-- [ ] **INP-06**: Send button animates to full opacity + scale=1 when text is present
-- [ ] **INP-07**: Send button is dimmed (opacity 0.35, scale 0.92) when input is empty
-- [ ] **INP-08**: Send button press triggers haptic feedback (Light impact)
-- [ ] **INP-09**: Input resets to single line height after message is sent
-- [ ] **INP-10**: Safe area bottom inset handled so input clears home indicator
+- [x] **INP-01**: Chat input container has white background with hairline top border (#E5E5EA)
+- [x] **INP-02**: TextInput is borderless, multiline, with gray placeholder text (#9FA0A4)
+- [x] **INP-03**: Input height grows smoothly from 1 line (40px) to max 5 lines (~120px) using spring animation
+- [x] **INP-04**: Input becomes scrollable when content exceeds max height
+- [x] **INP-05**: Send button is a dark (#1C1C1E) circle (34px) with white arrow-up icon, bottom-anchored in row
+- [x] **INP-06**: Send button animates to full opacity + scale=1 when text is present
+- [x] **INP-07**: Send button is dimmed (opacity 0.35, scale 0.92) when input is empty
+- [x] **INP-08**: Send button press triggers haptic feedback (Light impact)
+- [x] **INP-09**: Input resets to single line height after message is sent
+- [x] **INP-10**: Safe area bottom inset handled so input clears home indicator
 
 ### Message Bubbles
 
@@ -33,9 +33,9 @@
 
 ### Keyboard Behavior
 
-- [ ] **KBD-01**: Keyboard avoidance is smooth — input slides up with keyboard on iOS
-- [ ] **KBD-02**: Dragging the message list dismisses keyboard (on-drag mode)
-- [ ] **KBD-03**: Message list auto-scrolls to bottom when new message is added
+- [x] **KBD-01**: Keyboard avoidance is smooth — input slides up with keyboard on iOS
+- [x] **KBD-02**: Dragging the message list dismisses keyboard (on-drag mode)
+- [x] **KBD-03**: Message list auto-scrolls to bottom when new message is added
 
 ### Product Strategy
 
@@ -67,23 +67,23 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INP-01 | Phase 1 | Pending |
-| INP-02 | Phase 1 | Pending |
-| INP-03 | Phase 1 | Pending |
-| INP-04 | Phase 1 | Pending |
-| INP-05 | Phase 1 | Pending |
-| INP-06 | Phase 1 | Pending |
-| INP-07 | Phase 1 | Pending |
-| INP-08 | Phase 1 | Pending |
-| INP-09 | Phase 1 | Pending |
-| INP-10 | Phase 1 | Pending |
+| INP-01 | Phase 1 | Complete |
+| INP-02 | Phase 1 | Complete |
+| INP-03 | Phase 1 | Complete |
+| INP-04 | Phase 1 | Complete |
+| INP-05 | Phase 1 | Complete |
+| INP-06 | Phase 1 | Complete |
+| INP-07 | Phase 1 | Complete |
+| INP-08 | Phase 1 | Complete |
+| INP-09 | Phase 1 | Complete |
+| INP-10 | Phase 1 | Complete |
 | BUB-01 | Phase 1 | Complete |
 | BUB-02 | Phase 1 | Complete |
 | BUB-03 | Phase 1 | Complete |
 | BUB-04 | Phase 1 | Complete |
-| KBD-01 | Phase 1 | Pending |
-| KBD-02 | Phase 1 | Pending |
-| KBD-03 | Phase 1 | Pending |
+| KBD-01 | Phase 1 | Complete |
+| KBD-02 | Phase 1 | Complete |
+| KBD-03 | Phase 1 | Complete |
 | NAV-01 | Phase 2 | Pending |
 | NAV-02 | Phase 2 | Pending |
 | NAV-03 | Phase 2 | Pending |
