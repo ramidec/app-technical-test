@@ -1,6 +1,18 @@
 import { Stack } from "expo-router";
 import { View, Text, Pressable, Alert, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { KeyboardProvider } from "react-native-keyboard-controller";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
+    },
+  },
+});
 
 function ChatHeaderTitle() {
   return (
@@ -38,17 +50,26 @@ function ChatHeaderRight() {
 
 export default function RootLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerLeft: () => <ChatHeaderLeft />,
-        headerTitle: () => <ChatHeaderTitle />,
-        headerRight: () => <ChatHeaderRight />,
-      }}
-    />
+    <GestureHandlerRootView style={styles.root}>
+      <QueryClientProvider client={queryClient}>
+        <KeyboardProvider>
+          <Stack
+            screenOptions={{
+              headerLeft: () => <ChatHeaderLeft />,
+              headerTitle: () => <ChatHeaderTitle />,
+              headerRight: () => <ChatHeaderRight />,
+            }}
+          />
+        </KeyboardProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   headerTitleContainer: {
     flexDirection: "row",
     alignItems: "center",
