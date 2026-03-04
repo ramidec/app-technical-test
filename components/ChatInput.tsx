@@ -21,6 +21,7 @@ import Animated, {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import { hapticImpact, hapticSelection } from '@/utils/haptics';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 
@@ -178,10 +179,16 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({
     };
   });
 
-  const paddingBottom = Math.max(insets.bottom, 8) + 8;
+  const { progress: kbProgress } = useReanimatedKeyboardAnimation();
+  const fullPadding = Math.max(insets.bottom, 8) + 8;
+  const kbPadding = 8; // minimal padding when keyboard is up
+
+  const animatedContainerStyle = useAnimatedStyle(() => ({
+    paddingBottom: interpolate(kbProgress.value, [0, 1], [fullPadding, kbPadding]),
+  }));
 
   return (
-    <View style={[styles.container, { paddingBottom }]}>
+    <Animated.View style={[styles.container, animatedContainerStyle]}>
       <GestureDetector gesture={panGesture}>
         <Animated.View style={[styles.chatbar, animatedChatbarStyle]}>
           {/* Drag handle (visible when expanded) */}
@@ -216,7 +223,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({
           </View>
         </Animated.View>
       </GestureDetector>
-    </View>
+    </Animated.View>
   );
 });
 

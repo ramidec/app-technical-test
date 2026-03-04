@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState, useMemo } from 'react';
+import React, { useRef, useCallback, useState, useMemo } from "react";
 import {
   StyleSheet,
   StatusBar,
@@ -6,21 +6,27 @@ import {
   ActivityIndicator,
   Keyboard,
   Pressable,
-} from 'react-native';
-
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
-import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
-import BottomSheet from '@gorhom/bottom-sheet';
-import MessageItem from '@/components/MessageItem';
-import { computeMessageGrouping, MessageWithGrouping } from '@/utils/messageGrouping';
-import ChatInput, { ChatInputRef } from '@/components/ChatInput';
-import AttachmentSheet from '@/components/AttachmentSheet';
-import EmojiSheet from '@/components/EmojiSheet';
-import SkeletonMessages from '@/components/SkeletonMessages';
-import BottomFade from '@/components/BottomFade';
-import { useMessages } from '@/hooks/useMessages';
-import { useSendMessage } from '@/hooks/useSendMessage';
+} from "react-native";
+import { runOnJS } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { FlashList, FlashListRef } from "@shopify/flash-list";
+import {
+  KeyboardAvoidingView,
+  useKeyboardHandler,
+} from "react-native-keyboard-controller";
+import BottomSheet from "@gorhom/bottom-sheet";
+import MessageItem from "@/components/MessageItem";
+import {
+  computeMessageGrouping,
+  MessageWithGrouping,
+} from "@/utils/messageGrouping";
+import ChatInput, { ChatInputRef } from "@/components/ChatInput";
+import AttachmentSheet from "@/components/AttachmentSheet";
+import EmojiSheet from "@/components/EmojiSheet";
+import SkeletonMessages from "@/components/SkeletonMessages";
+import BottomFade from "@/components/BottomFade";
+import { useMessages } from "@/hooks/useMessages";
+import { useSendMessage } from "@/hooks/useSendMessage";
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
@@ -28,20 +34,47 @@ export default function ChatScreen() {
   const chatInputRef = useRef<ChatInputRef>(null);
   const attachmentSheetRef = useRef<BottomSheet>(null);
   const emojiSheetRef = useRef<BottomSheet>(null);
-  const [pendingEmoji, setPendingEmoji] = useState('');
+  const [pendingEmoji, setPendingEmoji] = useState("");
   const [availableHeight, setAvailableHeight] = useState(0);
   const [isInputExpanded, setIsInputExpanded] = useState(false);
 
-  const { messages, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useMessages();
+  const {
+    messages,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useMessages();
   const sendMutation = useSendMessage();
-  const groupedMessages = useMemo(() => computeMessageGrouping(messages), [messages]);
+  const groupedMessages = useMemo(
+    () => computeMessageGrouping(messages),
+    [messages],
+  );
 
-  const handleSend = useCallback((text: string) => {
-    sendMutation.mutate(text);
-    setTimeout(() => {
-      flashListRef.current?.scrollToEnd({ animated: true });
-    }, 50);
-  }, [sendMutation]);
+  const scrollToEndInstant = useCallback(() => {
+    flashListRef.current?.scrollToEnd({ animated: false });
+  }, []);
+
+  // Scroll list to bottom in sync with keyboard — animated:false so it
+  // tracks the keyboard frame-by-frame instead of triggering a separate animation
+  useKeyboardHandler({
+    onMove: (e) => {
+      "worklet";
+      if (e.height > 0) {
+        runOnJS(scrollToEndInstant)();
+      }
+    },
+  });
+
+  const handleSend = useCallback(
+    (text: string) => {
+      sendMutation.mutate(text);
+      setTimeout(() => {
+        flashListRef.current?.scrollToEnd({ animated: true });
+      }, 50);
+    },
+    [sendMutation],
+  );
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -60,7 +93,7 @@ export default function ChatScreen() {
   }, []);
 
   const handleEmojiSelected = useCallback((emoji: string) => {
-    setPendingEmoji(prev => prev + emoji);
+    setPendingEmoji((prev) => prev + emoji);
     emojiSheetRef.current?.close();
     setTimeout(() => {
       chatInputRef.current?.focus();
@@ -89,10 +122,15 @@ export default function ChatScreen() {
           <FlashList<MessageWithGrouping>
             ref={flashListRef}
             data={groupedMessages}
-            renderItem={({ item }) => <MessageItem message={item} isLastInGroup={item.isLastInGroup} />}
+            renderItem={({ item }) => (
+              <MessageItem message={item} isLastInGroup={item.isLastInGroup} />
+            )}
             keyExtractor={(item) => item.id}
-            estimatedItemSize={80}
-            initialScrollIndex={groupedMessages.length > 0 ? groupedMessages.length - 1 : undefined}
+            initialScrollIndex={
+              groupedMessages.length > 0
+                ? groupedMessages.length - 1
+                : undefined
+            }
             style={styles.list}
             contentContainerStyle={styles.listContent}
             maintainVisibleContentPosition={{
@@ -127,9 +165,11 @@ export default function ChatScreen() {
           onAttachPress={handleAttachPress}
           onEmojiPress={handleEmojiPress}
           pendingEmoji={pendingEmoji}
-          onPendingEmojiConsumed={() => setPendingEmoji('')}
+          onPendingEmojiConsumed={() => setPendingEmoji("")}
           onExpandedChange={setIsInputExpanded}
-          maxExpandedHeight={availableHeight > 0 ? availableHeight * 0.7 : undefined}
+          maxExpandedHeight={
+            availableHeight > 0 ? availableHeight * 0.7 : undefined
+          }
         />
       </KeyboardAvoidingView>
 
@@ -142,15 +182,15 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   listWrapper: {
     flex: 1,
@@ -166,6 +206,6 @@ const styles = StyleSheet.create({
   },
   paginationLoader: {
     paddingVertical: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
 });
