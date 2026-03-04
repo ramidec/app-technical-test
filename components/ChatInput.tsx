@@ -12,6 +12,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   withTiming,
+  interpolateColor,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,22 +28,23 @@ interface ChatInputProps {
   placeholder?: string;
 }
 
-export default function ChatInput({ onSend, placeholder = 'Type your message...' }: ChatInputProps) {
+export default function ChatInput({ onSend, placeholder = 'Text Alexandra' }: ChatInputProps) {
   const insets = useSafeAreaInsets();
   const [text, setText] = useState('');
   const [scrollEnabled, setScrollEnabled] = useState(false);
 
   const inputHeight = useSharedValue(MIN_HEIGHT);
-  const sendOpacity = useSharedValue(0.35);
+  // sendProgress: 0 = idle (no text), 1 = active (has text)
+  const sendProgress = useSharedValue(0);
   const sendScale = useSharedValue(0.92);
   const sendPressOpacity = useSharedValue(1);
 
   const hasText = text.trim().length > 0;
 
   useEffect(() => {
-    sendOpacity.value = withTiming(hasText ? 1 : 0.35, { duration: 200 });
+    sendProgress.value = withTiming(hasText ? 1 : 0, { duration: 200 });
     sendScale.value = withSpring(hasText ? 1 : 0.92, { damping: 15, stiffness: 300 });
-  }, [hasText, sendOpacity, sendScale]);
+  }, [hasText, sendProgress, sendScale]);
 
   const handleContentSizeChange = useCallback(
     (e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
@@ -78,37 +80,52 @@ export default function ChatInput({ onSend, placeholder = 'Type your message...'
     height: inputHeight.value,
   }));
 
-  const animatedSendStyle = useAnimatedStyle(() => ({
-    opacity: sendOpacity.value * sendPressOpacity.value,
-    transform: [{ scale: sendScale.value }],
-  }));
+  const animatedSendStyle = useAnimatedStyle(() => {
+    // Opacity: 0.35 when idle → 1.0 when active, multiplied by press feedback
+    const opacity = (0.35 + 0.65 * sendProgress.value) * sendPressOpacity.value;
+    return {
+      opacity,
+      transform: [{ scale: sendScale.value }],
+      backgroundColor: interpolateColor(
+        sendProgress.value,
+        [0, 1],
+        ['#F2F4F4', '#002C2A']
+      ),
+    };
+  });
+
+  // Icon color switches with text presence (instant, matches bg transition)
+  const iconColor = hasText ? '#FFFFFF' : '#002C2A';
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom + 10 }]}>
-      <View style={styles.row}>
+    <View style={[styles.container, { paddingBottom: insets.bottom + 8 }]}>
+      {/* Chatbar: rounded pill with shadow */}
+      <View style={styles.chatbar}>
         <Animated.View style={[styles.inputWrapper, animatedInputStyle]}>
           <TextInput
             style={styles.input}
             value={text}
             onChangeText={setText}
             placeholder={placeholder}
-            placeholderTextColor="#9FA0A4"
+            placeholderTextColor="#809594"
             multiline
             scrollEnabled={scrollEnabled}
             onContentSizeChange={handleContentSizeChange}
           />
         </Animated.View>
 
-        <Pressable
-          onPress={handleSend}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          hitSlop={8}
-        >
-          <Animated.View style={[styles.sendButton, animatedSendStyle]}>
-            <Ionicons name="arrow-up" size={18} color="#FFFFFF" />
-          </Animated.View>
-        </Pressable>
+        <View style={styles.actionsRow}>
+          <Pressable
+            onPress={handleSend}
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            hitSlop={8}
+          >
+            <Animated.View style={[styles.sendButton, animatedSendStyle]}>
+              <Ionicons name="arrow-up" size={18} color={iconColor} />
+            </Animated.View>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -117,33 +134,43 @@ export default function ChatInput({ onSend, placeholder = 'Type your message...'
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#FFFFFF',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#E5E5EA',
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: 8,
   },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    gap: 10,
+  chatbar: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    paddingTop: 12,
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+    // Shadow matching design: x:0 y:2 blur:24 color:#002C2A 8%
+    shadowColor: '#002C2A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
   },
   inputWrapper: {
-    flex: 1,
     justifyContent: 'center',
   },
   input: {
-    flex: 1,
     fontSize: 16,
-    color: '#1C1C1E',
+    fontWeight: '500',
+    color: '#002C2A',
     textAlignVertical: 'top',
   },
+  actionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    height: 36,
+    marginTop: 8,
+  },
   sendButton: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: '#1C1C1E',
+    width: 36,
+    height: 36,
+    borderRadius: 100,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 3,
   },
 });

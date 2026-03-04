@@ -4,6 +4,7 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  View,
 } from 'react-native';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +12,7 @@ import { FlashList, FlashListRef } from '@shopify/flash-list';
 import { Message, MessageRole } from '@/types/message';
 import MessageItem from '@/components/MessageItem';
 import ChatInput from '@/components/ChatInput';
+import BottomFade from '@/components/BottomFade';
 
 const initialMessages: Message[] = [
   {
@@ -91,24 +93,28 @@ export default function ChatScreen() {
     >
       <StatusBar barStyle="dark-content" />
 
-      <FlashList
-        ref={flashListRef}
-        data={messages}
-        renderItem={({ item }) => <MessageItem message={item} />}
-        keyExtractor={(item) => item.id}
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
-        maintainVisibleContentPosition={{
-          autoscrollToBottomThreshold: 0.2,
-          startRenderingFromBottom: true,
-        }}
-        keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
-      />
+      <View style={styles.listContainer}>
+        <FlashList
+          ref={flashListRef}
+          data={messages}
+          renderItem={({ item }) => <MessageItem message={item} />}
+          keyExtractor={(item) => item.id}
+          style={styles.list}
+          contentContainerStyle={styles.listContent}
+          maintainVisibleContentPosition={{
+            autoscrollToBottomThreshold: 0.2,
+            startRenderingFromBottom: true,
+          }}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        />
+        {/* Decorative white-to-transparent fade above input bar */}
+        <BottomFade />
+      </View>
 
       <ChatInput
         onSend={handleSend}
-        placeholder="Type your message..."
+        placeholder="Text Alexandra"
       />
     </KeyboardAvoidingView>
   );
@@ -117,13 +123,19 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#FFFFFF',
+  },
+  listContainer: {
+    flex: 1,
+    // Relative positioning so BottomFade can sit absolutely at its bottom
+    position: 'relative',
   },
   list: {
     flex: 1,
   },
   listContent: {
-    padding: 16,
-    paddingBottom: 8,
+    paddingTop: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 32,
   },
 });
