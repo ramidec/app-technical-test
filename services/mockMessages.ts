@@ -1,3 +1,4 @@
+import { Asset } from 'expo-asset';
 import {
   Message,
   MessageRole,
@@ -17,25 +18,25 @@ const SAMPLE_IMAGE: MessageAttachment = {
 
 const SAMPLE_AUDIO: MessageAttachment = {
   type: 'audio',
-  uri: 'https://example.com/voice-note.m4a',
-  durationMs: 34_000,
+  uri: '', // resolved lazily from local asset
+  durationMs: 5_000,
   waveform: [0.2, 0.5, 0.8, 0.6, 0.9, 0.7, 0.4, 0.6, 0.8, 0.3, 0.5, 0.7, 0.9, 0.4, 0.2],
 };
 
 const SAMPLE_VIDEO: MessageAttachment = {
   type: 'video',
-  uri: 'https://example.com/screen-recording.mp4',
+  uri: '', // resolved lazily from local asset
   thumbnailUri: 'https://picsum.photos/seed/video1/400/225',
-  durationMs: 127_000,
-  width: 1920,
-  height: 1080,
+  durationMs: 3_000,
+  width: 640,
+  height: 360,
 };
 
 const SAMPLE_FILE: MessageAttachment = {
   type: 'file',
-  uri: 'https://example.com/project-brief.pdf',
+  uri: '', // resolved lazily from local asset
   fileName: 'Project-Brief-Q2.pdf',
-  fileSizeBytes: 2_450_000,
+  fileSizeBytes: 2_450,
   mimeType: 'application/pdf',
 };
 
@@ -45,6 +46,26 @@ const SAMPLE_IMAGE_2: MessageAttachment = {
   width: 600,
   height: 400,
 };
+
+// --- Lazy asset resolution (runs once on first fetch) ---
+
+let assetsResolved = false;
+
+async function ensureLocalAssets(): Promise<void> {
+  if (assetsResolved) return;
+
+  const [audioAsset, videoAsset, pdfAsset] = await Promise.all([
+    Asset.fromModule(require('@/assets/media/sample-audio.mp3')).downloadAsync(),
+    Asset.fromModule(require('@/assets/media/sample-video.mp4')).downloadAsync(),
+    Asset.fromModule(require('@/assets/media/sample-document.pdf')).downloadAsync(),
+  ]);
+
+  (SAMPLE_AUDIO as any).uri = audioAsset.localUri ?? audioAsset.uri;
+  (SAMPLE_VIDEO as any).uri = videoAsset.localUri ?? videoAsset.uri;
+  (SAMPLE_FILE as any).uri = pdfAsset.localUri ?? pdfAsset.uri;
+
+  assetsResolved = true;
+}
 
 // --- Seed messages (newest first for cursor pagination) ---
 
@@ -115,13 +136,13 @@ const ALL_MESSAGES: Message[] = [
   },
   {
     id: 'msg-06b',
-    role: MessageRole.User,
+    role: MessageRole.Client,
     content: "Let me send you a voice note with my thoughts.",
     createdAt: makeTime(27),
     updatedAt: makeTime(27),
     attachments: [SAMPLE_AUDIO],
-    senderName: 'George',
-    senderAvatar: AVATAR_GEORGE,
+    senderName: 'Alexandra Velcaz',
+    senderAvatar: AVATAR_ALEXANDRA,
   },
   {
     id: 'msg-07',
@@ -205,6 +226,9 @@ const PAGE_SIZE = 7;
 // --- Mock API ---
 
 export async function fetchMessages(cursor?: string): Promise<MessagesPage> {
+  // Resolve bundled test assets on first call
+  await ensureLocalAssets();
+
   // Simulate network latency
   await new Promise(resolve => setTimeout(resolve, 800));
 

@@ -29,9 +29,7 @@ const AttachmentSheet = forwardRef<BottomSheet>((_, ref) => {
     stiffness: 400,
     mass: 0.5,
     overshootClamping: false,
-    restDisplacementThreshold: 0.1,
-    restSpeedThreshold: 0.1,
-  });
+  } as any);
 
   const handleOptionPress = useCallback((label: string) => {
     hapticImpact(ImpactFeedbackStyle.Light);

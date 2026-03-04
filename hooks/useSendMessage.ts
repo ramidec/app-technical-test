@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient, InfiniteData } from '@tanstack/react-query';
 import { sendMessage } from '@/services/mockMessages';
 import { Message, MessageRole, MessagesPage } from '@/types/message';
+import { setCachedMessages } from '@/services/storage';
 
 const CHANNEL_ID = 'mock-channel';
 
@@ -64,7 +65,7 @@ export function useSendMessage() {
         ['messages', CHANNEL_ID],
         (old) => {
           if (!old) return old;
-          return {
+          const updated = {
             ...old,
             pages: old.pages.map(page => ({
               ...page,
@@ -75,6 +76,9 @@ export function useSendMessage() {
               ),
             })),
           };
+          // Persist to MMKV
+          setCachedMessages(updated.pages.flatMap(p => p.messages));
+          return updated;
         }
       );
     },

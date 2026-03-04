@@ -1,7 +1,10 @@
-import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { hapticImpact } from '@/utils/haptics';
+import { ImpactFeedbackStyle } from 'expo-haptics';
+import VideoPlayerModal from '@/components/VideoPlayerModal';
 import type { VideoAttachment as VideoAttachmentType } from '@/types/message';
 
 interface Props {
@@ -18,29 +21,45 @@ function formatDuration(ms: number): string {
 }
 
 export default function VideoAttachment({ attachment }: Props) {
+  const [modalVisible, setModalVisible] = useState(false);
+
   const aspectRatio = attachment.width / attachment.height;
   const displayWidth = Math.min(MAX_WIDTH, attachment.width);
   const displayHeight = displayWidth / aspectRatio;
 
   return (
-    <View style={[styles.container, { width: displayWidth, height: displayHeight }]}>
-      <Image
-        source={{ uri: attachment.thumbnailUri }}
-        style={styles.thumbnail}
-        contentFit="cover"
-        transition={300}
-      />
-      <View style={styles.overlay}>
-        <View style={styles.playCircle}>
-          <Ionicons name="play" size={24} color="#FFFFFF" />
+    <>
+      <Pressable
+        onPress={() => {
+          hapticImpact(ImpactFeedbackStyle.Light);
+          setModalVisible(true);
+        }}
+      >
+        <View style={[styles.container, { width: displayWidth, height: displayHeight }]}>
+          <Image
+            source={{ uri: attachment.thumbnailUri }}
+            style={styles.thumbnail}
+            contentFit="cover"
+            transition={300}
+          />
+          <View style={styles.overlay}>
+            <View style={styles.playCircle}>
+              <Ionicons name="play" size={24} color="#FFFFFF" />
+            </View>
+          </View>
+          <View style={styles.durationBadge}>
+            <Text style={styles.durationText}>
+              {formatDuration(attachment.durationMs)}
+            </Text>
+          </View>
         </View>
-      </View>
-      <View style={styles.durationBadge}>
-        <Text style={styles.durationText}>
-          {formatDuration(attachment.durationMs)}
-        </Text>
-      </View>
-    </View>
+      </Pressable>
+      <VideoPlayerModal
+        uri={attachment.uri}
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+      />
+    </>
   );
 }
 

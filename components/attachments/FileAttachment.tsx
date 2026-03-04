@@ -1,6 +1,10 @@
-import React from 'react';
-import { StyleSheet, View, Text } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { StyleSheet, View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { hapticImpact } from '@/utils/haptics';
+import { ImpactFeedbackStyle } from 'expo-haptics';
+import { downloadAndOpenFile } from '@/utils/fileDownload';
+import PdfViewerModal from '@/components/PdfViewerModal';
 import type { FileAttachment as FileAttachmentType } from '@/types/message';
 
 interface Props {
@@ -14,25 +18,97 @@ function formatSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function isPdf(fileName: string): boolean {
+  return fileName.toLowerCase().endsWith('.pdf');
+}
+
 export default function FileAttachment({ attachment, isUser }: Props) {
+  const [downloading, setDownloading] = useState(false);
+  const [pdfVisible, setPdfVisible] = useState(false);
+
+  const handleDownload = useCallback(async () => {
+    if (!attachment.uri) return;
+    hapticImpact(ImpactFeedbackStyle.Light);
+    setDownloading(true);
+    try {
+      await downloadAndOpenFile(attachment.uri, attachment.fileName);
+    } catch (e) {
+      console.warn('File open failed:', e);
+    } finally {
+      setDownloading(false);
+    }
+  }, [attachment.uri, attachment.fileName]);
+
+  const handlePress = useCallback(() => {
+    if (!attachment.uri) return;
+    hapticImpact(ImpactFeedbackStyle.Light);
+
+    if (isPdf(attachment.fileName)) {
+      setPdfVisible(true);
+    } else {
+      handleDownload();
+    }
+  }, [attachment.uri, attachment.fileName, handleDownload]);
+
   return (
-    <View style={[styles.container, isUser ? styles.containerUser : styles.containerClient]}>
-      <View style={[styles.iconBox, isUser ? styles.iconBoxUser : styles.iconBoxClient]}>
-        <Ionicons name="document" size={20} color={isUser ? '#FFFFFF' : '#007AFF'} />
-      </View>
-      <View style={styles.info}>
-        <Text
-          style={[styles.fileName, isUser && styles.textUser]}
-          numberOfLines={1}
-          ellipsizeMode="middle"
-        >
-          {attachment.fileName}
-        </Text>
-        <Text style={[styles.fileSize, isUser && styles.fileSizeUser]}>
-          {formatSize(attachment.fileSizeBytes)}
-        </Text>
-      </View>
-    </View>
+    <>
+      <Pressable onPress={handlePress} disabled={downloading}>
+        <View style={[styles.container, isUser ? styles.containerUser : styles.containerClient]}>
+          {/* File icon */}
+          <View style={[styles.iconBox, isUser ? styles.iconBoxUser : styles.iconBoxClient]}>
+            <Ionicons
+              name={isPdf(attachment.fileName) ? 'document-text' : 'document'}
+              size={20}
+              color={isUser ? '#FFFFFF' : '#007AFF'}
+            />
+          </View>
+
+          {/* File info */}
+          <View style={styles.info}>
+            <Text
+              style={[styles.fileName, isUser && styles.textUser]}
+              numberOfLines={1}
+              ellipsizeMode="middle"
+            >
+              {attachment.fileName}
+            </Text>
+            <Text style={[styles.fileSize, isUser && styles.fileSizeUser]}>
+              {formatSize(attachment.fileSizeBytes)}
+            </Text>
+          </View>
+
+          {/* Download button */}
+          <Pressable
+            onPress={handleDownload}
+            disabled={downloading}
+            hitSlop={8}
+            style={styles.downloadButton}
+          >
+            {downloading ? (
+              <ActivityIndicator size="small" color={isUser ? '#FFFFFF' : '#007AFF'} />
+            ) : (
+              <Ionicons
+                name="download-outline"
+                size={20}
+                color={isUser ? 'rgba(255,255,255,0.7)' : '#8E8E93'}
+              />
+            )}
+          </Pressable>
+        </View>
+      </Pressable>
+
+      {/* PDF Viewer Modal */}
+      {isPdf(attachment.fileName) && attachment.uri ? (
+        <PdfViewerModal
+          uri={attachment.uri}
+          fileName={attachment.fileName}
+          visible={pdfVisible}
+          onClose={() => setPdfVisible(false)}
+          onDownload={handleDownload}
+          downloading={downloading}
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -83,5 +159,11 @@ const styles = StyleSheet.create({
   },
   fileSizeUser: {
     color: 'rgba(255,255,255,0.7)',
+  },
+  downloadButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

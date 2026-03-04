@@ -21,9 +21,7 @@ const EmojiSheet = forwardRef<BottomSheet, EmojiSheetProps>(({ onEmojiSelected }
     stiffness: 400,
     mass: 0.5,
     overshootClamping: false,
-    restDisplacementThreshold: 0.1,
-    restSpeedThreshold: 0.1,
-  });
+  } as any);
 
   const renderBackdrop = useCallback(
     (props: BottomSheetDefaultBackdropProps) => (

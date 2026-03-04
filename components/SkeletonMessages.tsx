@@ -1,6 +1,14 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { MotiView } from 'moti';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withDelay,
+  interpolateColor,
+  Easing,
+} from 'react-native-reanimated';
 
 const COLOR_A = '#DDE1E1';
 const COLOR_B = '#EEF0F0';
@@ -16,19 +24,25 @@ function Bone({
   borderRadius?: number;
   delay?: number;
 }) {
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    progress.value = withDelay(
+      delay,
+      withRepeat(
+        withTiming(1, { duration: 1100, easing: Easing.inOut(Easing.ease) }),
+        -1,
+        true,
+      ),
+    );
+  }, [delay, progress]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(progress.value, [0, 1], [COLOR_A, COLOR_B]),
+  }));
+
   return (
-    <MotiView
-      from={{ backgroundColor: COLOR_A }}
-      animate={{ backgroundColor: COLOR_B }}
-      transition={{
-        type: 'timing',
-        duration: 1100,
-        loop: true,
-        delay,
-        repeatReverse: true,
-      }}
-      style={{ width, height, borderRadius }}
-    />
+    <Animated.View style={[{ width, height, borderRadius }, animatedStyle]} />
   );
 }
 
