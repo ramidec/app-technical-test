@@ -1,8 +1,15 @@
 import React from 'react';
-import { Modal, View, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
-import { PdfView } from '@kishannareshpal/expo-pdf';
+import { Modal, View, Pressable, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// Lazy import — native module may not be available in all dev builds
+let PdfView: React.ComponentType<any> | null = null;
+try {
+  PdfView = require('@kishannareshpal/expo-pdf').PdfView;
+} catch {
+  // native module not available
+}
 
 interface Props {
   uri: string;
@@ -46,11 +53,14 @@ export default function PdfViewerModal({
         </View>
 
         {/* PDF content */}
-        <PdfView
-          uri={uri}
-          style={styles.pdf}
-          doubleTapToZoom
-        />
+        {PdfView ? (
+          <PdfView uri={uri} style={styles.pdf} doubleTapToZoom />
+        ) : (
+          <View style={styles.pdfFallback}>
+            <Ionicons name="document-text-outline" size={48} color="#8E8E93" />
+            <Text style={styles.pdfFallbackText}>PDF preview unavailable</Text>
+          </View>
+        )}
       </View>
     </Modal>
   );
@@ -79,5 +89,15 @@ const styles = StyleSheet.create({
   },
   pdf: {
     flex: 1,
+  },
+  pdfFallback: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+  },
+  pdfFallbackText: {
+    fontSize: 15,
+    color: '#8E8E93',
   },
 });

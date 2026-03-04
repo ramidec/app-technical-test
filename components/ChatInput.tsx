@@ -63,8 +63,10 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({
   const [scrollEnabled, setScrollEnabled] = useState(false);
   const [isExpandedJS, setIsExpandedJS] = useState(false);
 
-  const inputHeight = useSharedValue(MIN_HEIGHT);
-  const isExpanded = useSharedValue(0); // 0 = collapsed, 1 = expanded
+  const inputHeight = useSharedValue(MIN_HEIGHT);  // collapsed content height (managed by handleContentSizeChange)
+  const expandHeight = useSharedValue(0);           // expand animation height (isolated from inputHeight)
+  const isExpanded = useSharedValue(0);              // 0 = collapsed, 1 = expanded
+  const dragTranslateY = useSharedValue(0);
 
   // Append emoji from picker
   useEffect(() => {
@@ -103,25 +105,50 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({
 
   const panGesture = Gesture.Pan()
     .activeOffsetY([-15, 15])
+    .onUpdate((event) => {
+      'worklet';
+      const ty = event.translationY;
+      if (isExpanded.value < 0.5) {
+        // Collapsed: full tracking upward, rubber-band downward
+        dragTranslateY.value = ty < 0 ? ty : ty * 0.2;
+      } else {
+        // Expanded: full tracking downward, rubber-band upward
+        dragTranslateY.value = ty > 0 ? ty : ty * 0.2;
+      }
+    })
     .onEnd((event) => {
       'worklet';
       const swipedUp = event.translationY < -SWIPE_THRESHOLD;
       const swipedDown = event.translationY > SWIPE_THRESHOLD;
 
       if (swipedUp && isExpanded.value < 0.5) {
-        isExpanded.value = withSpring(1, EXPAND_SPRING);
+        // Capture current visual height (content + drag extra)
+        const currentH = inputHeight.value + Math.max(0, -event.translationY);
+        expandHeight.value = currentH;
+
+        isExpanded.value = 1;
+        dragTranslateY.value = withSpring(0, SPRING_CONFIG);
+
+        // Animate expand height from current visual size to target
+        expandHeight.value = withSpring(maxExpandedHeight, EXPAND_SPRING);
+
         runOnJS(setExpandedTrue)();
         runOnJS(fireHapticMedium)();
       } else if (swipedDown && isExpanded.value > 0.5) {
-        isExpanded.value = withSpring(0, EXPAND_SPRING);
+        isExpanded.value = 0;
         runOnJS(setExpandedFalse)();
         runOnJS(fireHapticLight)();
       }
+      dragTranslateY.value = withSpring(0, SPRING_CONFIG);
+    })
+    .onFinalize(() => {
+      'worklet';
+      dragTranslateY.value = withSpring(0, SPRING_CONFIG);
     });
 
   const collapse = useCallback(() => {
     if (isExpandedJS) {
-      isExpanded.value = withSpring(0, EXPAND_SPRING);
+      isExpanded.value = 0;
       setIsExpandedJS(false);
       onExpandedChange?.(false);
       Keyboard.dismiss();
@@ -143,7 +170,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({
     inputHeight.value = withSpring(MIN_HEIGHT, SPRING_CONFIG);
     // Collapse if expanded
     if (isExpandedJS) {
-      isExpanded.value = withSpring(0, EXPAND_SPRING);
+      isExpanded.value = 0;
       setIsExpandedJS(false);
       onExpandedChange?.(false);
     }
@@ -159,25 +186,28 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({
     onEmojiPress?.();
   }, [onEmojiPress]);
 
-  // Animated styles
+  // Animated styles — always return the same property keys to avoid stale
+  // property bugs when reanimated switches between flex and height.
+  // flexShrink: 1 when expanding ensures the wrapper caps at the chatbar's
+  // available space so the actions row stays visible.
   const animatedInputStyle = useAnimatedStyle(() => {
     if (isExpanded.value > 0.5) {
-      // In expanded mode, let flex: 1 handle sizing
-      return { flex: 1 };
+      return { height: expandHeight.value, maxHeight: expandHeight.value, flexShrink: 1 };
     }
-    return { height: inputHeight.value };
+    const dragExtra = Math.max(0, -dragTranslateY.value);
+    const h = inputHeight.value + dragExtra;
+    return { height: h, maxHeight: h, flexShrink: 0 };
   });
 
-  const animatedChatbarStyle = useAnimatedStyle(() => {
-    const expandedMin = interpolate(
-      isExpanded.value,
-      [0, 1],
-      [0, maxExpandedHeight]
-    );
-    return {
-      minHeight: expandedMin > 0 ? expandedMin : undefined,
-    };
-  });
+  // Container gets a fixed height when expanded (so the list keeps remaining space).
+  // Inner elements use flex: 1 to fill the fixed-height container.
+  const expandedContainerStyle = isExpandedJS ? { height: maxExpandedHeight } as const : undefined;
+  const expandedInnerFlex = isExpandedJS ? { flex: 1 } as const : undefined;
+
+  // When dragging down (positive), add marginTop to shrink the container from top
+  const animatedDragStyle = useAnimatedStyle(() => ({
+    marginTop: Math.max(0, dragTranslateY.value),
+  }));
 
   const { progress: kbProgress } = useReanimatedKeyboardAnimation();
   const fullPadding = Math.max(insets.bottom, 8) + 8;
@@ -188,9 +218,9 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({
   }));
 
   return (
-    <Animated.View style={[styles.container, animatedContainerStyle]}>
+    <Animated.View style={[styles.container, animatedContainerStyle, expandedContainerStyle, animatedDragStyle]}>
       <GestureDetector gesture={panGesture}>
-        <Animated.View style={[styles.chatbar, animatedChatbarStyle]}>
+        <Animated.View style={[styles.chatbar, expandedInnerFlex]}>
           {/* Drag handle (visible when expanded) */}
           {isExpandedJS && (
             <View style={styles.dragHandle}>
@@ -199,7 +229,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(({
           )}
 
           {/* Text area */}
-          <Animated.View style={[animatedInputStyle, isExpandedJS && { flex: 1 }]}>
+          <Animated.View style={animatedInputStyle}>
             <TextInput
               ref={textInputRef}
               style={[styles.input, isExpandedJS && { flex: 1 }]}

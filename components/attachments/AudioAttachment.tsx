@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { StyleSheet, View, Text, Pressable, LayoutChangeEvent } from 'react-native';
-import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+import { useAudioPlayer, useAudioPlayerStatus } from '@/utils/safeAudio';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
@@ -40,13 +40,15 @@ export default function AudioAttachment({ attachment, isUser }: Props) {
   // Outbound (user) bubble: white on green
   const iconColor = isUser ? '#FFFFFF' : '#002C2A';
   const elapsedColor = isUser ? '#FFFFFF' : '#002C2A';
-  const durationColor = isUser ? 'rgba(255,255,255,0.6)' : '#66807F';
+  const durationColor = isUser ? '#FFFFFF' : '#002C2A';
   const trackFilledColor = isUser ? '#FFFFFF' : '#002C2A';
   const trackUnfilledColor = isUser ? 'rgba(255,255,255,0.25)' : '#C4CECE';
   const thumbStrokeColor = isUser ? '#FFFFFF' : '#002C2A';
   const thumbFillColor = isUser ? 'rgba(230,250,240,1)' : '#F2F4F4';
   const buttonBg = isUser ? 'rgba(255,255,255,0.18)' : '#E8EAEA';
+  const buttonBorder = isUser ? 'rgba(255,255,255,0.25)' : '#D5DADA';
   const speedColor = isUser ? 'rgba(255,255,255,0.7)' : '#002C2A';
+  const wrapperBg = isUser ? 'rgba(255,255,255,0.12)' : '#FFFFFF';
 
   // --- Computed ---
   const duration = status.duration > 0 ? status.duration : (attachment.durationMs / 1000);
@@ -121,11 +123,12 @@ export default function AudioAttachment({ attachment, isUser }: Props) {
   }));
 
   return (
+    <View style={[styles.wrapper, { backgroundColor: wrapperBg }]}>
     <View style={styles.container}>
       {/* ▶ Play / Pause rounded-rect button */}
       <Pressable
         onPress={handlePlayPause}
-        style={[styles.controlButton, { backgroundColor: buttonBg }]}
+        style={[styles.controlButton, { backgroundColor: buttonBg, borderColor: buttonBorder }]}
       >
         <Ionicons
           name={status.playing ? 'pause' : 'play'}
@@ -178,29 +181,35 @@ export default function AudioAttachment({ attachment, isUser }: Props) {
       {/* ×1 Speed rounded-rect badge */}
       <Pressable
         onPress={handleSpeedToggle}
-        style={[styles.controlButton, { backgroundColor: buttonBg }]}
+        style={[styles.controlButton, { backgroundColor: buttonBg, borderColor: buttonBorder }]}
       >
         <Text style={[styles.speedText, { color: speedColor }]}>
           ×{SPEEDS[speedIndex]}
         </Text>
       </Pressable>
     </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    borderRadius: 14,
+    padding: 8,
+    marginTop: 6,
+  },
   container: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 6,
     minWidth: 240,
   },
-  // Rounded-rect button shared by play & speed
+  // Rounded button shared by play & speed
   controlButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 12,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },

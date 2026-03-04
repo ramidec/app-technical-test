@@ -2,7 +2,13 @@ import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { View, Text, Pressable, Alert, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { setAudioModeAsync } from "expo-audio";
+// Lazy — expo-audio uses NitroModules, unavailable in Expo Go
+let setAudioModeAsync: ((opts: any) => Promise<void>) | null = null;
+try {
+  setAudioModeAsync = require("expo-audio").setAudioModeAsync;
+} catch {
+  // not available (Expo Go)
+}
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -54,7 +60,7 @@ function ChatHeaderRight() {
 export default function RootLayout() {
   // Enable audio playback on iOS silent mode
   useEffect(() => {
-    setAudioModeAsync({ playsInSilentMode: true });
+    setAudioModeAsync?.({ playsInSilentMode: true });
   }, []);
 
   return (

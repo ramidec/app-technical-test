@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useState, useMemo } from "react";
+import React, { useRef, useCallback, useState, useMemo, useEffect } from "react";
 import {
   StyleSheet,
   StatusBar,
@@ -40,7 +40,7 @@ export default function ChatScreen() {
 
   const {
     messages,
-    isLoading,
+    isLoading: dataLoading,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
@@ -50,6 +50,35 @@ export default function ChatScreen() {
     () => computeMessageGrouping(messages),
     [messages],
   );
+
+  // Skeleton: show for a minimum duration so the user sees it
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const [showSkeleton, setShowSkeleton] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setMinTimeElapsed(true), 600);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Hide skeleton once data is ready AND minimum time has passed.
+  // Scroll to end repeatedly behind skeleton — each call lets FlashList
+  // render more items at the new position. setTimeout gives render time.
+  const dataReady = !dataLoading && groupedMessages.length > 0;
+
+  useEffect(() => {
+    if (dataReady && minTimeElapsed && showSkeleton) {
+      let count = 0;
+      const scroll = () => {
+        flashListRef.current?.scrollToEnd({ animated: false });
+        count++;
+        if (count < 15) {
+          setTimeout(scroll, 100);
+        } else {
+          setShowSkeleton(false);
+        }
+      };
+      scroll();
+    }
+  }, [dataReady, minTimeElapsed, showSkeleton]);
 
   const scrollToEndInstant = useCallback(() => {
     flashListRef.current?.scrollToEnd({ animated: false });
@@ -100,16 +129,13 @@ export default function ChatScreen() {
     }, 100);
   }, []);
 
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <SkeletonMessages />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.root}>
+      {showSkeleton && (
+        <View style={styles.skeletonOverlay}>
+          <SkeletonMessages />
+        </View>
+      )}
       <KeyboardAvoidingView
         style={styles.container}
         behavior="padding"
@@ -126,6 +152,7 @@ export default function ChatScreen() {
               <MessageItem message={item} isLastInGroup={item.isLastInGroup} />
             )}
             keyExtractor={(item) => item.id}
+            estimatedItemSize={120}
             initialScrollIndex={
               groupedMessages.length > 0
                 ? groupedMessages.length - 1
@@ -133,9 +160,9 @@ export default function ChatScreen() {
             }
             style={styles.list}
             contentContainerStyle={styles.listContent}
-            maintainVisibleContentPosition={{
-              autoscrollToTopThreshold: 10,
-            }}
+            maintainVisibleContentPosition={
+              showSkeleton ? undefined : { autoscrollToTopThreshold: 10 }
+            }
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled"
             onEndReached={handleEndReached}
@@ -188,8 +215,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FFFFFF",
   },
-  loadingContainer: {
-    flex: 1,
+  skeletonOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
     backgroundColor: "#FFFFFF",
   },
   listWrapper: {
