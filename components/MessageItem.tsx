@@ -1,53 +1,73 @@
-import { Message, MessageRole } from "@/types/message";
-import { StyleSheet, Text, View } from "react-native";
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { Message, MessageRole } from '@/types/message';
 
 const MessageItem = ({ message }: { message: Message }) => {
+  const isUser = message.role === MessageRole.User;
+
+  const timestamp = new Date(message.createdAt).toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+
   return (
-    <View
-      style={[
-        styles.container,
-        message.role === MessageRole.User
-          ? styles.right
-          : styles.left,
-      ]}
-    >
-      <Text
-        style={[
-          styles.text,
-          message.role === MessageRole.User
-            ? styles.textRight
-            : styles.textLeft,
-        ]}
-      >{message.content}</Text>
+    <View style={[styles.outerRow, isUser ? styles.outerRowRight : styles.outerRowLeft]}>
+      <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleClient]}>
+        <Text style={[styles.messageText, isUser ? styles.messageTextUser : styles.messageTextClient]}>
+          {message.content}
+        </Text>
+      </View>
+      <Text style={[styles.timestamp, isUser ? styles.timestampRight : styles.timestampLeft]}>
+        {timestamp}
+      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
+  outerRow: {
+    marginBottom: 8,
+    maxWidth: '75%',
+  },
+  outerRowLeft: {
+    alignSelf: 'flex-start',
+    alignItems: 'flex-start',
+  },
+  outerRowRight: {
+    alignSelf: 'flex-end',
+    alignItems: 'flex-end',
+  },
+  bubble: {
     borderRadius: 16,
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
   },
-  left: {
-    marginRight: 'auto',
-    backgroundColor: '#fdfdfd',
+  bubbleClient: {
+    backgroundColor: '#E9E9EB',
   },
-  right: {
-    marginLeft: 'auto',
-    backgroundColor: '#007bff',
+  bubbleUser: {
+    backgroundColor: '#007AFF',
   },
-  text: {
+  messageText: {
     fontSize: 16,
     fontWeight: '400',
   },
-  textLeft: {
-    color: '#000',
+  messageTextClient: {
+    color: '#1C1C1E',
   },
-  textRight: {
-    color: '#fff',
+  messageTextUser: {
+    color: '#FFFFFF',
+  },
+  timestamp: {
+    color: '#8E8E93',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  timestampLeft: {
+    textAlign: 'left',
+  },
+  timestampRight: {
+    textAlign: 'right',
   },
 });
 
