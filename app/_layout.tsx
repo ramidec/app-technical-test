@@ -16,6 +16,14 @@ function ChatHeaderTitle() {
   );
 }
 
+function ChatHeaderLeft() {
+  return (
+    <Pressable hitSlop={8} style={styles.backButton}>
+      <Ionicons name="chevron-back" size={28} color="#007AFF" />
+    </Pressable>
+  );
+}
+
 function ChatHeaderRight() {
   return (
     <Pressable
@@ -32,6 +40,7 @@ export default function RootLayout() {
   return (
     <Stack
       screenOptions={{
+        headerLeft: () => <ChatHeaderLeft />,
         headerTitle: () => <ChatHeaderTitle />,
         headerRight: () => <ChatHeaderRight />,
       }}
@@ -69,6 +78,9 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 12,
     color: "#8E8E93",
+  },
+  backButton: {
+    paddingLeft: 4,
   },
   phoneButton: {
     paddingRight: 4,
