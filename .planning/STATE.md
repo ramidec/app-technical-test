@@ -7,11 +7,11 @@ stopped_at: Completed 02-01-PLAN.md
 last_updated: "2026-03-04T05:03:15.929Z"
 last_activity: 2026-03-04 — Phase 2 plan 01 completed (navigation header)
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 2
   total_plans: 3
   completed_plans: 3
-  percent: 20
+  percent: 15
 ---
 
 # Project State
@@ -20,17 +20,16 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-03-04)
 
-**Core value:** A production-quality chat input that rivals industry-leading apps — pixel-perfect, animated, and delightful — backed by sharp product thinking.
-**Current focus:** Phase 2 — Navigation Header (complete)
+**Core value:** A professional, Slack-quality iOS chat app — pixel-perfect, animated, and production-grade. Slack is the behavioral reference. More features after Phase 4.
+**Current focus:** Phase 3 — Chat Input Visual Redesign (next up)
 
 ## Current Position
 
-Phase: 2 of 3 (Navigation Header)
-Plan: 1 of 1 in current phase (Phase 2 complete)
-Status: In progress
-Last activity: 2026-03-04 — Phase 2 plan 01 completed (navigation header)
+Phase: 2 of 4 complete (Navigation Header done)
+Status: Ready for Phase 3
+Last activity: 2026-03-04 — Roadmap restructured; Product Strategy removed; Phases 3 & 4 defined
 
-Progress: [██░░░░░░░░] 20%
+Progress: [████░░░░░░░░░░░░░░░░] 15%
 
 ## Performance Metrics
 
@@ -71,11 +70,14 @@ Recent decisions affecting current work:
 - [Phase 02-navigation-header P01]: ChatHeaderTitle and ChatHeaderRight kept inline in _layout.tsx — all nav config in one place
 - [Phase 02-navigation-header P01]: Phone tap fires Alert.alert('Calling...', 'Alexandra Voltec') — visual feedback without telephony
 - [Phase 02-navigation-header P01]: NAV-03 (back button) satisfied by Expo Router default Stack behavior — no customization needed
+- [Roadmap]: Product Strategy phase removed — project goal is professional Slack-quality chat, not a test deliverable
+- [Roadmap]: Phase 3 = Chat Input Visual Redesign (Figma accurate), Phase 4 = Advanced Features (gorhom bottom sheet, emoji, glow animation)
+- [Phase 04]: Glow animation = shimmer gradient sweeps left→right across full input container on attachment/emoji tap
+- [Phase 04]: @gorhom/bottom-sheet to be installed; gesture-handler already present
 
 ### Pending Todos
 
-1. **Discuss state management and animation options after Phase 2** (planning)
-   Post-Phase 2 discussion: explore state management approach, user's animation ideas, and Part 2 README strategic enhancements before formalizing Phase 3 plan.
+None.
 
 ### Blockers/Concerns
 
