@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Modal, View, Pressable } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,7 +14,7 @@ interface Props {
 
 export default function VideoPlayerModal({ uri, visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
-  const { theme } = useUnistyles();
+  const { theme } = useAppTheme();
 
   const player = useVideoPlayer(uri, (p) => {
     p.loop = false;

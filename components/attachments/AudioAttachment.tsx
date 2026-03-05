@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, Pressable, LayoutChangeEvent } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { useAudioPlayer, useAudioPlayerStatus } from '@/utils/safeAudio';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -31,7 +32,7 @@ function formatTime(seconds: number): string {
 export default function AudioAttachment({ attachment, isUser }: Props) {
   const player = useAudioPlayer(attachment.uri || undefined, { updateInterval: 100 });
   const status = useAudioPlayerStatus(player);
-  const { theme } = useUnistyles();
+  const { theme } = useAppTheme();
 
   const [speedIndex, setSpeedIndex] = useState(0);
   const [trackWidth, setTrackWidth] = useState(0);

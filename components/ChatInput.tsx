@@ -14,7 +14,8 @@ import {
   NativeSyntheticEvent,
   TextInputContentSizeChangeEventData,
 } from "react-native";
-import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { StyleSheet } from "react-native-unistyles";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -76,7 +77,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     ref,
   ) => {
     const textInputRef = useRef<TextInput>(null);
-    const { theme } = useUnistyles();
+    const { theme } = useAppTheme();
     const insets = useSafeAreaInsets();
     const [text, setText] = useState("");
     const [scrollEnabled, setScrollEnabled] = useState(false);
@@ -410,7 +411,7 @@ interface ChatBarButtonProps {
 }
 
 function ChatBarButton({ icon, onPress, accessibilityLabel }: ChatBarButtonProps) {
-  const { theme } = useUnistyles();
+  const { theme } = useAppTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -437,7 +438,7 @@ const SendButton = React.memo(function SendButton({
   hasText,
   onSend,
 }: SendButtonProps) {
-  const { theme } = useUnistyles();
+  const { theme } = useAppTheme();
   const progress = useSharedValue(0);
   const pressScale = useSharedValue(1);
 
@@ -458,7 +459,7 @@ const SendButton = React.memo(function SendButton({
   }, [pressScale]);
 
   const animatedOpacityStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 1], [0.35, 1.0]),
+    opacity: interpolate(progress.value, [0, 1], [0.5, 1.0]),
   }));
 
   const sendIdleColor = theme.colors.sendIdle;

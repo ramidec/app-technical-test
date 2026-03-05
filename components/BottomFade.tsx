@@ -1,6 +1,7 @@
 import React from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 /**
  * BottomFade
@@ -11,7 +12,7 @@ import { StyleSheet, useUnistyles } from 'react-native-unistyles';
  * pointerEvents: none so it doesn't block scroll/taps on the list.
  */
 export default function BottomFade() {
-  const { theme } = useUnistyles();
+  const { theme } = useAppTheme();
 
   return (
     <LinearGradient

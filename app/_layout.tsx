@@ -2,7 +2,8 @@ import '../theme/unistyles';
 import { useEffect, useState } from "react";
 import { Stack, useRouter } from "expo-router";
 import { View, Text, Pressable, Alert } from "react-native";
-import { StyleSheet, useUnistyles } from "react-native-unistyles";
+import { StyleSheet } from "react-native-unistyles";
+import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
 // Lazy — expo-audio uses NitroModules, unavailable in Expo Go
 let setAudioModeAsync: ((opts: { playsInSilentMode: boolean }) => Promise<void>) | null = null;
@@ -16,7 +17,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 function ChatHeaderTitle() {
-  const { theme } = useUnistyles();
+  const { theme } = useAppTheme();
   return (
     <View style={styles.titlePill}>
       {/* Contact avatar */}
@@ -34,7 +35,7 @@ function ChatHeaderTitle() {
 
 function ChatHeaderLeft() {
   const router = useRouter();
-  const { theme } = useUnistyles();
+  const { theme } = useAppTheme();
   return (
     <Pressable hitSlop={8} onPress={() => router.back()} accessibilityLabel="Go back" accessibilityRole="button">
       <Ionicons name="chevron-back" size={24} color={theme.colors.textPrimary} />
@@ -43,7 +44,7 @@ function ChatHeaderLeft() {
 }
 
 function ChatHeaderRight() {
-  const { theme } = useUnistyles();
+  const { theme } = useAppTheme();
   return (
     <Pressable
       hitSlop={8}
@@ -55,6 +56,7 @@ function ChatHeaderRight() {
 }
 
 export default function RootLayout() {
+  const { theme } = useAppTheme();
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: { retry: 1, staleTime: 30_000 },
@@ -66,6 +68,17 @@ export default function RootLayout() {
     setAudioModeAsync?.({ playsInSilentMode: true });
   }, []);
 
+  // headerStyle must be inline — React Navigation caches the prop value,
+  // so Unistyles' C++ style updates don't reach it.
+  const headerStyle = {
+    backgroundColor: theme.colors.background,
+    shadowColor: theme.colors.headerShadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: theme.colors.headerShadowOpacity,
+    shadowRadius: 24,
+    elevation: 4,
+  };
+
   return (
     <GestureHandlerRootView style={styles.root}>
       <QueryClientProvider client={queryClient}>
@@ -75,9 +88,8 @@ export default function RootLayout() {
               headerLeft: () => <ChatHeaderLeft />,
               headerTitle: () => <ChatHeaderTitle />,
               headerRight: () => <ChatHeaderRight />,
-              headerStyle: styles.header,
+              headerStyle,
               headerShadowVisible: false,
-              // Custom shadow via headerStyle
             }}
           />
         </KeyboardProvider>
@@ -89,15 +101,6 @@ export default function RootLayout() {
 const styles = StyleSheet.create((theme) => ({
   root: {
     flex: 1,
-  },
-  header: {
-    backgroundColor: theme.colors.background,
-    // Shadow matching design spec: y:2, blur:24, color:#002C2A, opacity:0.08
-    shadowColor: theme.colors.headerShadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: theme.colors.headerShadowOpacity,
-    shadowRadius: 24,
-    elevation: 4,
   },
   titlePill: {
     flexDirection: 'row',

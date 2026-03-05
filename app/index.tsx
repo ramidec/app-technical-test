@@ -28,9 +28,11 @@ import SkeletonMessages from "@/components/SkeletonMessages";
 import BottomFade from "@/components/BottomFade";
 import { useMessages } from "@/hooks/useMessages";
 import { useSendMessage } from "@/hooks/useSendMessage";
+import { useAppTheme } from "@/hooks/useAppTheme";
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
+  const { colorScheme } = useAppTheme();
   const flashListRef = useRef<FlashListRef<MessageWithGrouping>>(null);
   const chatInputRef = useRef<ChatInputRef>(null);
   const attachmentSheetRef = useRef<BottomSheet>(null);
@@ -168,7 +170,7 @@ export default function ChatScreen() {
           behavior="padding"
           keyboardVerticalOffset={insets.top + 56}
         >
-          <StatusBar barStyle="dark-content" />
+          <StatusBar barStyle={colorScheme === "dark" ? "light-content" : "dark-content"} />
 
           <View
             style={styles.listWrapper}

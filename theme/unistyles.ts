@@ -50,7 +50,7 @@ export const typography = {
 
 // ─── Light Theme ─────────────────────────────────────────────────────────────
 
-const lightTheme = {
+export const lightTheme = {
   colors: {
     // Core surfaces
     background: "#FFFFFF",
@@ -170,7 +170,7 @@ const lightTheme = {
 
 // ─── Dark Theme ──────────────────────────────────────────────────────────────
 
-const darkTheme = {
+export const darkTheme = {
   colors: {
     // Core surfaces
     background: "#1C1C1E",
@@ -193,7 +193,7 @@ const darkTheme = {
     inputBorder: "#3A3A3C",
 
     // Send button
-    sendIdle: "#2C2C2E",
+    sendIdle: "#48484A",
     sendActive: "#E6FAF0",
     sendIconIdle: "#9FA6A5",
     sendIconActive: "#1C1C1E",
@@ -236,7 +236,7 @@ const darkTheme = {
     audioButtonBg: "#3A3A3C",
     audioButtonBorder: "#48484A",
     audioThumb: "#F2F4F4",
-    audioWrapperBg: "transparent",
+    audioWrapperBg: "rgba(255,255,255,0.06)",
     audioSpeedText: "#F2F4F4",
 
     // Audio player – user

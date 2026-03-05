@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Alert, View, Text, Pressable, ActivityIndicator } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { Ionicons } from '@expo/vector-icons';
 import { hapticImpact } from '@/utils/haptics';
 import { ImpactFeedbackStyle } from 'expo-haptics';
@@ -26,7 +27,7 @@ function isPdf(fileName: string): boolean {
 export default function FileAttachment({ attachment, isUser }: Props) {
   const [downloading, setDownloading] = useState(false);
   const [pdfVisible, setPdfVisible] = useState(false);
-  const { theme } = useUnistyles();
+  const { theme } = useAppTheme();
 
   const handleDownload = useCallback(async () => {
     if (!attachment.uri) return;

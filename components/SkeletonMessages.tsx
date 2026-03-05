@@ -9,7 +9,8 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import type { SharedValue } from 'react-native-reanimated';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 function Bone({
   width,
@@ -70,7 +71,7 @@ function SkeletonRow({
 
 export default function SkeletonMessages() {
   const progress = useSharedValue(0);
-  const { theme } = useUnistyles();
+  const { theme } = useAppTheme();
 
   useEffect(() => {
     progress.value = withRepeat(

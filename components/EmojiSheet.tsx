@@ -7,7 +7,8 @@ import BottomSheet, {
 import type { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
 import { EmojiKeyboard } from 'rn-emoji-keyboard';
 import { hapticSelection } from '@/utils/haptics';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 const SNAP_POINTS = ['50%', '80%'];
 
@@ -16,7 +17,7 @@ interface EmojiSheetProps {
 }
 
 const EmojiSheet = forwardRef<BottomSheet, EmojiSheetProps>(({ onEmojiSelected }, ref) => {
-  const { theme } = useUnistyles();
+  const { theme } = useAppTheme();
 
   const emojiKeyboardTheme = useMemo(() => ({
     container: theme.colors.background,

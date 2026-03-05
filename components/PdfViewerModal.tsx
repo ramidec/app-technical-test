@@ -1,6 +1,7 @@
 import React from 'react';
 import { Modal, View, Pressable, ActivityIndicator, Text } from 'react-native';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -30,7 +31,7 @@ export default function PdfViewerModal({
   downloading,
 }: Props) {
   const insets = useSafeAreaInsets();
-  const { theme } = useUnistyles();
+  const { theme } = useAppTheme();
 
   return (
     <Modal visible={visible} animationType="slide" statusBarTranslucent>

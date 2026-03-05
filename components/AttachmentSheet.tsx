@@ -10,7 +10,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { hapticImpact, hapticSelection } from '@/utils/haptics';
 import { ImpactFeedbackStyle } from 'expo-haptics';
-import { StyleSheet, useUnistyles } from 'react-native-unistyles';
+import { StyleSheet } from 'react-native-unistyles';
+import { useAppTheme } from '@/hooks/useAppTheme';
 
 // --- Individual Option ---
 
@@ -43,7 +44,7 @@ function AttachmentOption({
 
 const AttachmentSheet = forwardRef<BottomSheet>((_, ref) => {
   const insets = useSafeAreaInsets();
-  const { theme } = useUnistyles();
+  const { theme } = useAppTheme();
 
   const attachmentOptions: readonly AttachmentOptionData[] = useMemo(() => [
     { icon: 'camera' as const, label: 'Camera', bg: theme.colors.cameraBackground, fg: theme.colors.cameraIcon },
