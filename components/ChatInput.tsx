@@ -32,6 +32,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReanimatedKeyboardAnimation } from "react-native-keyboard-controller";
 import { hapticImpact, hapticSelection } from "@/utils/haptics";
 import { ImpactFeedbackStyle } from "expo-haptics";
+import GradientAIIcon, { GradientAIIconRef } from "@/components/GradientAIIcon";
 
 const MIN_HEIGHT = 19;
 const SPRING_CONFIG = { damping: 20, stiffness: 200, mass: 0.5 } as const;
@@ -389,6 +390,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
                   onPress={handleEmojiPress}
                   accessibilityLabel="Open emoji picker"
                 />
+                <AIButton />
               </View>
               <SendButton hasText={hasText} onSend={handleSend} />
             </View>
@@ -423,6 +425,31 @@ function ChatBarButton({ icon, onPress, accessibilityLabel }: ChatBarButtonProps
       ]}
     >
       <Ionicons name={icon} size={22} color={theme.colors.textSecondary} />
+    </Pressable>
+  );
+}
+
+// --- AI Button (gradient sparkle icon, no-op for now) ---
+
+function AIButton() {
+  const iconRef = useRef<GradientAIIconRef>(null);
+
+  const handlePress = useCallback(() => {
+    hapticSelection();
+    iconRef.current?.shimmer();
+  }, []);
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      hitSlop={6}
+      accessibilityLabel="AI assistant"
+      style={({ pressed }) => [
+        styles.chatBarButton,
+        pressed && styles.chatBarButtonPressed,
+      ]}
+    >
+      <GradientAIIcon ref={iconRef} size={22} />
     </Pressable>
   );
 }

@@ -3,6 +3,7 @@ import { useMutation, useQueryClient, InfiniteData } from '@tanstack/react-query
 import { sendMessage } from '@/services/mockMessages';
 import { Message, MessageRole, MessagesPage } from '@/types/message';
 import { setCachedMessages } from '@/services/storage';
+import { getSaveMessagesEnabled } from '@/services/debugSettings';
 import { CHANNEL_ID } from '@/constants/channels';
 
 export function useSendMessage() {
@@ -84,8 +85,10 @@ export function useSendMessage() {
         }
       );
 
-      // Side effect OUTSIDE the updater
-      setCachedMessages(allMessages);
+      // Side effect OUTSIDE the updater — only cache if debug flag allows
+      if (getSaveMessagesEnabled()) {
+        setCachedMessages(allMessages);
+      }
     },
   });
 }

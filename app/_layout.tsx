@@ -83,15 +83,22 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.root}>
       <QueryClientProvider client={queryClient}>
         <KeyboardProvider>
-          <Stack
-            screenOptions={{
-              headerLeft: () => <ChatHeaderLeft />,
-              headerTitle: () => <ChatHeaderTitle />,
-              headerRight: () => <ChatHeaderRight />,
-              headerStyle,
-              headerShadowVisible: false,
-            }}
-          />
+          <Stack>
+            <Stack.Screen
+              name="index"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="chat"
+              options={{
+                headerLeft: () => <ChatHeaderLeft />,
+                headerTitle: () => <ChatHeaderTitle />,
+                headerRight: () => <ChatHeaderRight />,
+                headerStyle,
+                headerShadowVisible: false,
+              }}
+            />
+          </Stack>
         </KeyboardProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>

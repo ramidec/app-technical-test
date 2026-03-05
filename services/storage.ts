@@ -30,3 +30,7 @@ export function setCachedMessages(messages: Message[]): void {
     console.error('[storage] Failed to cache messages:', e);
   }
 }
+
+export function clearCachedMessages(): void {
+  storage.remove(MESSAGES_KEY);
+}

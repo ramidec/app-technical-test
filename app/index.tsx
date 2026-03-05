@@ -1,260 +1,408 @@
-import React, { useRef, useCallback, useState, useMemo, useEffect } from "react";
+import React, { useState, useCallback } from 'react';
 import {
-  StyleSheet as RNStyleSheet,
-  StatusBar,
   View,
-  Keyboard,
+  Text,
+  Switch,
   Pressable,
-} from "react-native";
-import { StyleSheet } from "react-native-unistyles";
-import { runOnJS } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { FlashList, FlashListRef } from "@shopify/flash-list";
+  Platform,
+  ScrollView,
+  StatusBar,
+} from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import {
-  KeyboardAvoidingView,
-  useKeyboardHandler,
-} from "react-native-keyboard-controller";
-import BottomSheet from "@gorhom/bottom-sheet";
-import MessageItem from "@/components/MessageItem";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import {
-  computeMessageGrouping,
-  MessageWithGrouping,
-} from "@/utils/messageGrouping";
-import ChatInput, { ChatInputRef } from "@/components/ChatInput";
-import AttachmentSheet from "@/components/AttachmentSheet";
-import EmojiSheet from "@/components/EmojiSheet";
-import SkeletonMessages from "@/components/SkeletonMessages";
-import BottomFade from "@/components/BottomFade";
-import { useMessages } from "@/hooks/useMessages";
-import { useSendMessage } from "@/hooks/useSendMessage";
-import { useAppTheme } from "@/hooks/useAppTheme";
+  getSkeletonEnabled,
+  setSkeletonEnabled,
+  getSaveMessagesEnabled,
+  setSaveMessagesEnabled,
+} from '@/services/debugSettings';
+import { clearCachedMessages } from '@/services/storage';
 
-export default function ChatScreen() {
+const MONO = Platform.select({ ios: 'Menlo', default: 'monospace' });
+
+// ─── Accent palette ──────────────────────────────────────────────────────────
+const AMBER = '#F59E0B';
+const AMBER_MUTED = 'rgba(245, 158, 11, 0.12)';
+const GREEN = '#10B981';
+const RED = '#EF4444';
+
+// ─── Toggle Card ─────────────────────────────────────────────────────────────
+
+interface ToggleCardProps {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  description: string;
+  detail: string;
+  value: boolean;
+  onToggle: (v: boolean) => void;
+}
+
+function ToggleCard({ icon, title, description, detail, value, onToggle }: ToggleCardProps) {
+  const { theme, colorScheme } = useAppTheme();
+  const isDark = colorScheme === 'dark';
+
+  return (
+    <View
+      style={[
+        styles.card,
+        { borderLeftColor: value ? AMBER : (isDark ? '#3A3A3C' : '#D1D5DB') },
+      ]}
+    >
+      <View style={styles.cardHeader}>
+        <View style={[styles.iconCircle, { backgroundColor: AMBER_MUTED }]}>
+          <Ionicons name={icon} size={18} color={AMBER} />
+        </View>
+        <View style={styles.cardTitleRow}>
+          <Text style={styles.cardTitle}>{title}</Text>
+          <View style={styles.statusRow}>
+            <View
+              style={[
+                styles.statusDot,
+                { backgroundColor: value ? GREEN : (isDark ? '#4B5563' : '#9CA3AF') },
+              ]}
+            />
+            <Text
+              style={[
+                styles.statusText,
+                { color: value ? GREEN : theme.colors.textSecondary },
+              ]}
+            >
+              {value ? 'ACTIVE' : 'OFF'}
+            </Text>
+          </View>
+        </View>
+        <Switch
+          value={value}
+          onValueChange={onToggle}
+          trackColor={{ false: isDark ? '#3A3A3C' : '#D1D5DB', true: AMBER }}
+          thumbColor="#FFFFFF"
+          ios_backgroundColor={isDark ? '#3A3A3C' : '#D1D5DB'}
+        />
+      </View>
+      <Text style={styles.cardDescription}>{description}</Text>
+      <View style={styles.detailRow}>
+        <Ionicons
+          name="information-circle-outline"
+          size={13}
+          color={theme.colors.textSecondary}
+        />
+        <Text style={styles.detailText}>{detail}</Text>
+      </View>
+    </View>
+  );
+}
+
+// ─── Dashboard Screen ────────────────────────────────────────────────────────
+
+export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
-  const { colorScheme } = useAppTheme();
-  const flashListRef = useRef<FlashListRef<MessageWithGrouping>>(null);
-  const chatInputRef = useRef<ChatInputRef>(null);
-  const attachmentSheetRef = useRef<BottomSheet>(null);
-  const emojiSheetRef = useRef<BottomSheet>(null);
-  const [pendingEmoji, setPendingEmoji] = useState("");
-  const [availableHeight, setAvailableHeight] = useState(0);
-  const [isInputExpanded, setIsInputExpanded] = useState(false);
+  const router = useRouter();
+  const { theme, colorScheme } = useAppTheme();
+  const isDark = colorScheme === 'dark';
 
-  const {
-    messages,
-    isLoading: dataLoading,
-  } = useMessages();
-  const sendMutation = useSendMessage();
-  const groupedMessages = useMemo(
-    () => computeMessageGrouping(messages),
-    [messages],
-  );
+  const [skeletonOn, setSkeletonOn] = useState(() => getSkeletonEnabled());
+  const [saveOn, setSaveOn] = useState(() => getSaveMessagesEnabled());
 
-  // Skeleton: show for a minimum duration so the user sees it
-  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
-  const [showSkeleton, setShowSkeleton] = useState(true);
-  useEffect(() => {
-    const timer = setTimeout(() => setMinTimeElapsed(true), 600);
-    return () => clearTimeout(timer);
+  const handleSkeletonToggle = useCallback((value: boolean) => {
+    setSkeletonOn(value);
+    setSkeletonEnabled(value);
   }, []);
 
-  // Hide skeleton once data is ready AND minimum time has passed.
-  // Scroll to end repeatedly behind skeleton — each call lets FlashList
-  // render more items at the new position. setTimeout gives render time.
-  const dataReady = !dataLoading && groupedMessages.length > 0;
-
-  useEffect(() => {
-    if (!dataReady || !minTimeElapsed || !showSkeleton) return;
-
-    let timeoutId: ReturnType<typeof setTimeout>;
-    let count = 0;
-    const scroll = () => {
-      flashListRef.current?.scrollToEnd({ animated: false });
-      count++;
-      if (count < 15) {
-        timeoutId = setTimeout(scroll, 100);
-      } else {
-        setShowSkeleton(false);
-        // After skeleton removal, maintainVisibleContentPosition switches on
-        // which can shift scroll position. Do final scrolls after layout settles.
-        setTimeout(() => {
-          flashListRef.current?.scrollToEnd({ animated: false });
-        }, 100);
-        setTimeout(() => {
-          flashListRef.current?.scrollToEnd({ animated: false });
-        }, 300);
-      }
-    };
-    scroll();
-
-    return () => clearTimeout(timeoutId);
-  }, [dataReady, minTimeElapsed, showSkeleton]);
-
-  const scrollToEndInstant = useCallback(() => {
-    flashListRef.current?.scrollToEnd({ animated: false });
-  }, []);
-
-  const scrollToEndDelayed = useCallback(() => {
-    setTimeout(() => {
-      flashListRef.current?.scrollToEnd({ animated: false });
-    }, 50);
-  }, []);
-
-  // Scroll list to bottom in sync with keyboard — animated:false so it
-  // tracks the keyboard frame-by-frame instead of triggering a separate animation.
-  // onEnd does a final precise scroll after layout settles to fix any drift
-  // from runOnJS latency during the animation.
-  useKeyboardHandler({
-    onMove: (e) => {
-      "worklet";
-      if (e.height > 0) {
-        runOnJS(scrollToEndInstant)();
-      }
-    },
-    onEnd: (e) => {
-      "worklet";
-      if (e.height > 0) {
-        runOnJS(scrollToEndDelayed)();
-      }
-    },
-  });
-
-  const handleSend = useCallback(
-    (text: string) => {
-      sendMutation.mutate(text);
-      setTimeout(() => {
-        flashListRef.current?.scrollToEnd({ animated: true });
-      }, 50);
-    },
-    [sendMutation],
-  );
-
-  // NOTE: Auto-fetch in useMessages loads all pages eagerly; scroll-based pagination is unused.
-
-  const renderItem = useCallback(
-    ({ item }: { item: MessageWithGrouping }) => (
-      <MessageItem message={item} isLastInGroup={item.isLastInGroup} />
-    ),
-    [],
-  );
-
-  const handleAttachPress = useCallback(() => {
-    Keyboard.dismiss();
-    attachmentSheetRef.current?.snapToIndex(0);
-  }, []);
-
-  const handleEmojiPress = useCallback(() => {
-    Keyboard.dismiss();
-    emojiSheetRef.current?.snapToIndex(0);
-  }, []);
-
-  const handleEmojiSelected = useCallback((emoji: string) => {
-    setPendingEmoji((prev) => prev + emoji);
-    emojiSheetRef.current?.close();
-    setTimeout(() => {
-      chatInputRef.current?.focus();
-    }, 100);
+  const handleSaveToggle = useCallback((value: boolean) => {
+    setSaveOn(value);
+    setSaveMessagesEnabled(value);
+    if (!value) {
+      clearCachedMessages();
+    }
   }, []);
 
   return (
-    <ErrorBoundary>
-      <View style={styles.root}>
-        {showSkeleton && (
-          <View style={styles.skeletonOverlay}>
-            <SkeletonMessages />
+    <View style={[styles.root, { paddingTop: insets.top }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+
+      {/* ── Amber accent stripe ── */}
+      <View style={styles.accentStripe} />
+
+      {/* ── Header ── */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <View style={[styles.headerIconBox, { backgroundColor: AMBER_MUTED }]}>
+            <Ionicons name="construct" size={18} color={AMBER} />
           </View>
-        )}
-        <KeyboardAvoidingView
-          style={styles.container}
-          behavior="padding"
-          keyboardVerticalOffset={insets.top + 56}
-        >
-          <StatusBar barStyle={colorScheme === "dark" ? "light-content" : "dark-content"} />
-
-          <View
-            style={styles.listWrapper}
-            onLayout={(e) => setAvailableHeight(e.nativeEvent.layout.height)}
-          >
-            <View style={styles.listArea}>
-              <FlashList<MessageWithGrouping>
-                ref={flashListRef}
-                data={groupedMessages}
-                renderItem={renderItem}
-                keyExtractor={(item) => item.id}
-
-                initialScrollIndex={
-                  groupedMessages.length > 0
-                    ? groupedMessages.length - 1
-                    : undefined
-                }
-                style={styles.list}
-                contentContainerStyle={styles.listContent}
-                maintainVisibleContentPosition={
-                  showSkeleton ? undefined : { autoscrollToTopThreshold: 10 }
-                }
-                keyboardDismissMode="on-drag"
-                keyboardShouldPersistTaps="handled"
-              />
-              <BottomFade />
-            </View>
-            {isInputExpanded && (
-              <Pressable
-                style={RNStyleSheet.absoluteFill}
-                onPress={() => {
-                  chatInputRef.current?.collapse();
-                }}
-              />
-            )}
-            <ChatInput
-              ref={chatInputRef}
-              onSend={handleSend}
-              onAttachPress={handleAttachPress}
-              onEmojiPress={handleEmojiPress}
-              pendingEmoji={pendingEmoji}
-              onPendingEmojiConsumed={() => setPendingEmoji("")}
-              onExpandedChange={setIsInputExpanded}
-              maxExpandedHeight={
-                availableHeight > 0 ? availableHeight : undefined
-              }
-            />
+          <View>
+            <Text style={styles.headerTitle}>DEBUG DASHBOARD</Text>
+            <Text style={styles.headerSubtitle}>Runtime configuration</Text>
           </View>
-        </KeyboardAvoidingView>
-
-        <AttachmentSheet ref={attachmentSheetRef} />
-        <EmojiSheet ref={emojiSheetRef} onEmojiSelected={handleEmojiSelected} />
+        </View>
+        <View style={[styles.badge, { backgroundColor: AMBER_MUTED }]}>
+          <Text style={styles.badgeText}>DEV</Text>
+        </View>
       </View>
-    </ErrorBoundary>
+
+      {/* ── Separator ── */}
+      <View style={styles.separator} />
+
+      {/* ── Content ── */}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + 24 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Section label */}
+        <Text style={styles.sectionLabel}>FEATURE FLAGS</Text>
+
+        <ToggleCard
+          icon="layers-outline"
+          title="Skeleton Loading"
+          description="Always display the skeleton shimmer animation when entering the chat. Simulates network loading to test the loading experience."
+          detail={skeletonOn ? 'Skeleton shows on every chat open' : 'Skeleton animation disabled'}
+          value={skeletonOn}
+          onToggle={handleSkeletonToggle}
+        />
+
+        <ToggleCard
+          icon="save-outline"
+          title="Persist Messages"
+          description="Save user-sent messages to MMKV local storage so they survive across app restarts."
+          detail={saveOn ? 'Messages cached in MMKV' : 'Cache cleared \u2014 mock data only'}
+          value={saveOn}
+          onToggle={handleSaveToggle}
+        />
+
+        {/* ── System info ── */}
+        <Text style={styles.sectionLabel}>SYSTEM INFO</Text>
+        <View style={styles.infoCard}>
+          <InfoRow label="Platform" value={Platform.OS} />
+          <InfoRow label="RN Version" value="0.81.4" />
+          <InfoRow label="Storage" value="MMKV" />
+          <InfoRow label="State" value="React Query" />
+        </View>
+
+        {/* ── Enter Chat CTA ── */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.ctaButton,
+            pressed && styles.ctaButtonPressed,
+          ]}
+          onPress={() => router.push('/chat')}
+        >
+          <Text style={styles.ctaText}>Enter Chat</Text>
+          <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+        </Pressable>
+      </ScrollView>
+    </View>
   );
 }
+
+// ─── Info Row ────────────────────────────────────────────────────────────────
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
+  );
+}
+
+// ─── Styles ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create((theme) => ({
   root: {
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  container: {
-    flex: 1,
-    backgroundColor: theme.colors.background,
+
+  // Accent stripe
+  accentStripe: {
+    height: 3,
+    backgroundColor: AMBER,
   },
-  skeletonOverlay: {
-    ...RNStyleSheet.absoluteFillObject,
-    zIndex: 10,
-    backgroundColor: theme.colors.background,
-  },
-  listWrapper: {
-    flex: 1,
-  },
-  listArea: {
-    flex: 1,
-  },
-  list: {
-    flex: 1,
-  },
-  listContent: {
-    paddingTop: 8,
-    paddingRight: 16,
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 16,
-    paddingLeft: 16,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    color: theme.colors.textPrimary,
+    fontFamily: MONO,
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    marginTop: 1,
+  },
+  badge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    color: AMBER,
+    fontFamily: MONO,
+  },
+
+  // Separator
+  separator: {
+    height: 1,
+    backgroundColor: theme.colors.separator,
+    marginHorizontal: 20,
+  },
+
+  // Scroll
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+  },
+
+  // Section label
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.4,
+    color: theme.colors.textSecondary,
+    marginBottom: 12,
+    fontFamily: MONO,
+  },
+
+  // Card
+  card: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 14,
+    borderLeftWidth: 3,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 10,
+  },
+  iconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardTitleRow: {
+    flex: 1,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 2,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  statusText: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    fontFamily: MONO,
+  },
+  cardDescription: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: theme.colors.textSecondary,
+    marginBottom: 8,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: theme.colors.background,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  detailText: {
+    fontSize: 11,
+    color: theme.colors.textSecondary,
+    fontFamily: MONO,
+  },
+
+  // Info card
+  infoCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 24,
+    gap: 8,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: theme.colors.textSecondary,
+    fontFamily: MONO,
+  },
+  infoValue: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: theme.colors.textPrimary,
+    fontFamily: MONO,
+  },
+
+  // CTA Button
+  ctaButton: {
+    backgroundColor: AMBER,
+    borderRadius: 14,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  ctaButtonPressed: {
+    opacity: 0.85,
+    transform: [{ scale: 0.98 }],
+  },
+  ctaText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 }));
