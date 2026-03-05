@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
 import { Image } from 'expo-image';
 import { hapticImpact } from '@/utils/haptics';
 import { ImpactFeedbackStyle } from 'expo-haptics';
@@ -53,20 +54,20 @@ export default function ImageAttachment({ attachment, isUser }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
     marginTop: 6,
   },
   image: {
     borderRadius: 12,
-    backgroundColor: '#E5E5EA',
+    backgroundColor: theme.colors.imagePlaceholder,
   },
   caption: {
     fontSize: 13,
-    color: '#1C1C1E',
+    color: theme.colors.textPrimary,
     marginTop: 4,
   },
   captionUser: {
-    color: '#FFFFFF',
+    color: theme.colors.textWhite,
   },
-});
+}));

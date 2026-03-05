@@ -1,6 +1,8 @@
+import '../theme/unistyles';
 import { useEffect, useState } from "react";
 import { Stack, useRouter } from "expo-router";
-import { View, Text, Pressable, Alert, StyleSheet } from "react-native";
+import { View, Text, Pressable, Alert } from "react-native";
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import { Ionicons } from "@expo/vector-icons";
 // Lazy — expo-audio uses NitroModules, unavailable in Expo Go
 let setAudioModeAsync: ((opts: { playsInSilentMode: boolean }) => Promise<void>) | null = null;
@@ -14,6 +16,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 function ChatHeaderTitle() {
+  const { theme } = useUnistyles();
   return (
     <View style={styles.titlePill}>
       {/* Contact avatar */}
@@ -31,20 +34,22 @@ function ChatHeaderTitle() {
 
 function ChatHeaderLeft() {
   const router = useRouter();
+  const { theme } = useUnistyles();
   return (
     <Pressable hitSlop={8} onPress={() => router.back()} accessibilityLabel="Go back" accessibilityRole="button">
-      <Ionicons name="chevron-back" size={24} color="#002C2A" />
+      <Ionicons name="chevron-back" size={24} color={theme.colors.textPrimary} />
     </Pressable>
   );
 }
 
 function ChatHeaderRight() {
+  const { theme } = useUnistyles();
   return (
     <Pressable
       hitSlop={8}
       onPress={() => Alert.alert("Calling...", "Alexandra Velcaz")}
     >
-      <Ionicons name="call" size={24} color="#002C2A" />
+      <Ionicons name="call" size={24} color={theme.colors.textPrimary} />
     </Pressable>
   );
 }
@@ -81,23 +86,23 @@ export default function RootLayout() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   root: {
     flex: 1,
   },
   header: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.background,
     // Shadow matching design spec: y:2, blur:24, color:#002C2A, opacity:0.08
-    shadowColor: '#002C2A',
+    shadowColor: theme.colors.headerShadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: theme.colors.headerShadowOpacity,
     shadowRadius: 24,
     elevation: 4,
   },
   titlePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.background,
     borderRadius: 36,
     paddingTop: 4,
     paddingBottom: 4,
@@ -110,12 +115,12 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F2F4F4',
+    backgroundColor: theme.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarText: {
-    color: '#66807F',
+    color: theme.colors.textSecondary,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -126,13 +131,13 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#002C2A',
+    color: theme.colors.textPrimary,
     textAlign: 'left',
   },
   subtitle: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#66807F',
+    color: theme.colors.textSecondary,
     textAlign: 'left',
   },
-});
+}));

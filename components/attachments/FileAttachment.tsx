@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Alert, StyleSheet, View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { Alert, View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Ionicons } from '@expo/vector-icons';
 import { hapticImpact } from '@/utils/haptics';
 import { ImpactFeedbackStyle } from 'expo-haptics';
@@ -25,6 +26,7 @@ function isPdf(fileName: string): boolean {
 export default function FileAttachment({ attachment, isUser }: Props) {
   const [downloading, setDownloading] = useState(false);
   const [pdfVisible, setPdfVisible] = useState(false);
+  const { theme } = useUnistyles();
 
   const handleDownload = useCallback(async () => {
     if (!attachment.uri) return;
@@ -59,7 +61,7 @@ export default function FileAttachment({ attachment, isUser }: Props) {
             <Ionicons
               name={isPdf(attachment.fileName) ? 'document-text' : 'document'}
               size={20}
-              color={isUser ? '#FFFFFF' : '#007AFF'}
+              color={isUser ? theme.colors.textWhite : theme.colors.fileIcon}
             />
           </View>
 
@@ -85,12 +87,12 @@ export default function FileAttachment({ attachment, isUser }: Props) {
             style={styles.downloadButton}
           >
             {downloading ? (
-              <ActivityIndicator size="small" color={isUser ? '#FFFFFF' : '#007AFF'} />
+              <ActivityIndicator size="small" color={isUser ? theme.colors.textWhite : theme.colors.fileIcon} />
             ) : (
               <Ionicons
                 name="download-outline"
                 size={20}
-                color={isUser ? 'rgba(255,255,255,0.7)' : '#8E8E93'}
+                color={isUser ? theme.colors.fileDownloadUser : theme.colors.textSecondary}
               />
             )}
           </Pressable>
@@ -112,7 +114,7 @@ export default function FileAttachment({ attachment, isUser }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -123,10 +125,10 @@ const styles = StyleSheet.create({
     minWidth: 180,
   },
   containerClient: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: theme.colors.fileContainerClient,
   },
   containerUser: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: theme.colors.fileContainerUser,
   },
   iconBox: {
     width: 36,
@@ -136,10 +138,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconBoxClient: {
-    backgroundColor: '#E5E5EA',
+    backgroundColor: theme.colors.fileIconBoxClient,
   },
   iconBoxUser: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: theme.colors.fileIconBoxUser,
   },
   info: {
     flex: 1,
@@ -147,18 +149,18 @@ const styles = StyleSheet.create({
   fileName: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#1C1C1E',
+    color: theme.colors.textPrimary,
   },
   textUser: {
-    color: '#FFFFFF',
+    color: theme.colors.textWhite,
   },
   fileSize: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   fileSizeUser: {
-    color: 'rgba(255,255,255,0.7)',
+    color: theme.colors.fileDownloadUser,
   },
   downloadButton: {
     width: 32,
@@ -166,4 +168,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));

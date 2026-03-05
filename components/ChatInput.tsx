@@ -10,11 +10,11 @@ import {
   View,
   TextInput,
   Pressable,
-  StyleSheet,
   Keyboard,
   NativeSyntheticEvent,
   TextInputContentSizeChangeEventData,
 } from "react-native";
+import { StyleSheet, useUnistyles } from "react-native-unistyles";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -76,6 +76,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     ref,
   ) => {
     const textInputRef = useRef<TextInput>(null);
+    const { theme } = useUnistyles();
     const insets = useSafeAreaInsets();
     const [text, setText] = useState("");
     const [scrollEnabled, setScrollEnabled] = useState(false);
@@ -382,7 +383,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
                 value={text}
                 onChangeText={setText}
                 placeholder={placeholder}
-                placeholderTextColor="#809594"
+                placeholderTextColor={theme.colors.textPlaceholder}
                 multiline
                 scrollEnabled={scrollEnabled || isExpandedJS}
                 onContentSizeChange={handleContentSizeChange}
@@ -424,6 +425,7 @@ interface ChatBarButtonProps {
 }
 
 function ChatBarButton({ icon, onPress, accessibilityLabel }: ChatBarButtonProps) {
+  const { theme } = useUnistyles();
   return (
     <Pressable
       onPress={onPress}
@@ -434,7 +436,7 @@ function ChatBarButton({ icon, onPress, accessibilityLabel }: ChatBarButtonProps
         pressed && styles.chatBarButtonPressed,
       ]}
     >
-      <Ionicons name={icon} size={22} color="#66807F" />
+      <Ionicons name={icon} size={22} color={theme.colors.textSecondary} />
     </Pressable>
   );
 }
@@ -450,6 +452,7 @@ const SendButton = React.memo(function SendButton({
   hasText,
   onSend,
 }: SendButtonProps) {
+  const { theme } = useUnistyles();
   const progress = useSharedValue(0);
   const pressScale = useSharedValue(1);
 
@@ -473,12 +476,14 @@ const SendButton = React.memo(function SendButton({
     opacity: interpolate(progress.value, [0, 1], [0.35, 1.0]),
   }));
 
+  const sendIdleColor = theme.colors.sendIdle;
+  const sendActiveColor = theme.colors.sendActive;
   const animatedButtonStyle = useAnimatedStyle(() => {
     const scale = interpolate(progress.value, [0, 1], [0.92, 1.0]);
     const backgroundColor = interpolateColor(
       progress.value,
       [0, 1],
-      ["#F2F4F4", "#002C2A"],
+      [sendIdleColor, sendActiveColor],
     );
     return {
       transform: [{ scale: scale * pressScale.value }],
@@ -499,7 +504,7 @@ const SendButton = React.memo(function SendButton({
           <Ionicons
             name="arrow-up"
             size={18}
-            color={hasText ? "#FFFFFF" : "#002C2A"}
+            color={hasText ? theme.colors.sendIconActive : theme.colors.sendIconIdle}
           />
         </Animated.View>
       </Pressable>
@@ -507,22 +512,22 @@ const SendButton = React.memo(function SendButton({
   );
 });
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
-    backgroundColor: "transparent",
+    backgroundColor: theme.colors.transparent,
     paddingHorizontal: 16,
     paddingTop: 8,
   },
   chatbar: {
-    backgroundColor: "rgba(255,255,255,0.9)",
+    backgroundColor: theme.colors.inputBackground,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: "#FFFFFF",
+    borderColor: theme.colors.background,
     paddingTop: 16,
     paddingHorizontal: 12,
     paddingBottom: 12,
     gap: 12,
-    shadowColor: "#000000",
+    shadowColor: theme.colors.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12.5,
@@ -536,12 +541,12 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: "#C7C7CC",
+    backgroundColor: theme.colors.dragHandle,
   },
   input: {
     fontSize: 16,
     fontWeight: "500",
-    color: "#002C2A",
+    color: theme.colors.textPrimary,
     textAlignVertical: "top",
     padding: 0,
     margin: 0,
@@ -571,4 +576,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-});
+}));

@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { StyleSheet, View, Text, Pressable, LayoutChangeEvent } from 'react-native';
+import { View, Text, Pressable, LayoutChangeEvent } from 'react-native';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { useAudioPlayer, useAudioPlayerStatus } from '@/utils/safeAudio';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -21,35 +22,6 @@ interface Props {
 const SPEEDS = [1, 1.5, 2] as const;
 const THUMB_SIZE = 12;
 
-const AUDIO_THEME = {
-  user: {
-    icon: '#FFFFFF',
-    elapsed: '#FFFFFF',
-    duration: '#FFFFFF',
-    trackFilled: '#FFFFFF',
-    trackUnfilled: 'rgba(255,255,255,0.25)',
-    thumbStroke: '#FFFFFF',
-    thumbFill: 'rgba(230,250,240,1)',
-    buttonBg: 'rgba(255,255,255,0.18)',
-    buttonBorder: 'rgba(255,255,255,0.25)',
-    speed: 'rgba(255,255,255,0.7)',
-    wrapperBg: 'rgba(255,255,255,0.12)',
-  },
-  client: {
-    icon: '#002C2A',
-    elapsed: '#002C2A',
-    duration: '#002C2A',
-    trackFilled: '#002C2A',
-    trackUnfilled: '#C4CECE',
-    thumbStroke: '#002C2A',
-    thumbFill: '#F2F4F4',
-    buttonBg: '#E8EAEA',
-    buttonBorder: '#D5DADA',
-    speed: '#002C2A',
-    wrapperBg: '#FFFFFF',
-  },
-} as const;
-
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
@@ -59,13 +31,40 @@ function formatTime(seconds: number): string {
 export default function AudioAttachment({ attachment, isUser }: Props) {
   const player = useAudioPlayer(attachment.uri || undefined, { updateInterval: 100 });
   const status = useAudioPlayerStatus(player);
+  const { theme } = useUnistyles();
 
   const [speedIndex, setSpeedIndex] = useState(0);
   const [trackWidth, setTrackWidth] = useState(0);
   const thumbScale = useSharedValue(1);
 
   // --- Colour tokens ---
-  const colors = AUDIO_THEME[isUser ? 'user' : 'client'];
+  const colors = isUser
+    ? {
+        icon: theme.colors.textWhite,
+        elapsed: theme.colors.textWhite,
+        duration: theme.colors.textWhite,
+        trackFilled: theme.colors.textWhite,
+        trackUnfilled: theme.colors.audioTrackUser,
+        thumbStroke: theme.colors.textWhite,
+        thumbFill: theme.colors.audioThumbUser,
+        buttonBg: theme.colors.audioButtonBgUser,
+        buttonBorder: theme.colors.audioButtonBorderUser,
+        speed: theme.colors.audioSpeedTextUser,
+        wrapperBg: theme.colors.audioWrapperBgUser,
+      }
+    : {
+        icon: theme.colors.textPrimary,
+        elapsed: theme.colors.textPrimary,
+        duration: theme.colors.textPrimary,
+        trackFilled: theme.colors.textPrimary,
+        trackUnfilled: theme.colors.audioTrack,
+        thumbStroke: theme.colors.textPrimary,
+        thumbFill: theme.colors.audioThumb,
+        buttonBg: theme.colors.audioButtonBg,
+        buttonBorder: theme.colors.audioButtonBorder,
+        speed: theme.colors.audioSpeedText,
+        wrapperBg: theme.colors.audioWrapperBg,
+      };
 
   // --- Computed ---
   const duration = status.duration > 0 ? status.duration : (attachment.durationMs / 1000);
@@ -142,7 +141,7 @@ export default function AudioAttachment({ attachment, isUser }: Props) {
   return (
     <View style={[styles.wrapper, { backgroundColor: colors.wrapperBg }]}>
     <View style={styles.container}>
-      {/* ▶ Play / Pause rounded-rect button */}
+      {/* Play / Pause rounded-rect button */}
       <Pressable
         onPress={handlePlayPause}
         style={[styles.controlButton, { backgroundColor: colors.buttonBg, borderColor: colors.buttonBorder }]}
@@ -195,13 +194,13 @@ export default function AudioAttachment({ attachment, isUser }: Props) {
         {formatTime(duration)}
       </Text>
 
-      {/* ×1 Speed rounded-rect badge */}
+      {/* Speed rounded-rect badge */}
       <Pressable
         onPress={handleSpeedToggle}
         style={[styles.controlButton, { backgroundColor: colors.buttonBg, borderColor: colors.buttonBorder }]}
       >
         <Text style={[styles.speedText, { color: colors.speed }]}>
-          ×{SPEEDS[speedIndex]}
+          x{SPEEDS[speedIndex]}
         </Text>
       </Pressable>
     </View>
@@ -209,7 +208,7 @@ export default function AudioAttachment({ attachment, isUser }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   wrapper: {
     borderRadius: 14,
     padding: 8,
@@ -270,4 +269,4 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-});
+}));

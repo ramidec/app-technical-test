@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { Modal, View, Pressable, StyleSheet } from 'react-native';
+import { Modal, View, Pressable } from 'react-native';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,6 +13,7 @@ interface Props {
 
 export default function VideoPlayerModal({ uri, visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
+  const { theme } = useUnistyles();
 
   const player = useVideoPlayer(uri, (p) => {
     p.loop = false;
@@ -45,17 +47,17 @@ export default function VideoPlayerModal({ uri, visible, onClose }: Props) {
           onPress={handleClose}
           hitSlop={12}
         >
-          <Ionicons name="close-circle" size={32} color="rgba(255,255,255,0.85)" />
+          <Ionicons name="close-circle" size={32} color={theme.colors.closeButtonIcon} />
         </Pressable>
       </View>
     </Modal>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: theme.colors.videoPlayerBg,
     justifyContent: 'center',
   },
   video: {
@@ -67,4 +69,4 @@ const styles = StyleSheet.create({
     right: 16,
     zIndex: 10,
   },
-});
+}));

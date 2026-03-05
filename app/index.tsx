@@ -1,11 +1,12 @@
 import React, { useRef, useCallback, useState, useMemo, useEffect } from "react";
 import {
-  StyleSheet,
+  StyleSheet as RNStyleSheet,
   StatusBar,
   View,
   Keyboard,
   Pressable,
 } from "react-native";
+import { StyleSheet } from "react-native-unistyles";
 import { runOnJS } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { FlashList, FlashListRef } from "@shopify/flash-list";
@@ -197,7 +198,7 @@ export default function ChatScreen() {
             </View>
             {isInputExpanded && (
               <Pressable
-                style={StyleSheet.absoluteFill}
+                style={RNStyleSheet.absoluteFill}
                 onPress={() => {
                   chatInputRef.current?.collapse();
                 }}
@@ -225,19 +226,19 @@ export default function ChatScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   root: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.colors.background,
   },
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.colors.background,
   },
   skeletonOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...RNStyleSheet.absoluteFillObject,
     zIndex: 10,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.colors.background,
   },
   listWrapper: {
     flex: 1,
@@ -254,4 +255,4 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     paddingLeft: 16,
   },
-});
+}));

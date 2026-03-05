@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, Image, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
 import { Message, MessageRole, MessageAttachment } from '@/types/message';
 import ImageAttachmentView from '@/components/attachments/ImageAttachment';
 import AudioAttachmentView from '@/components/attachments/AudioAttachment';
@@ -100,7 +101,7 @@ function AttachmentRenderer({ attachment, isUser }: { attachment: MessageAttachm
   }
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   outerRow: {
     marginBottom: 8,
     maxWidth: BUBBLE_MAX_WIDTH,
@@ -133,14 +134,14 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#F2F4F4',
+    backgroundColor: theme.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitialsText: {
     fontSize: 10,
     fontWeight: '600',
-    color: '#66807F',
+    color: theme.colors.textSecondary,
   },
   bubble: {
     flexShrink: 1,
@@ -150,10 +151,10 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   bubbleClient: {
-    backgroundColor: '#F2F4F4',
+    backgroundColor: theme.colors.bubbleClient,
   },
   bubbleUser: {
-    backgroundColor: '#E6FAF0',
+    backgroundColor: theme.colors.bubbleUser,
   },
   bubbleSending: {
     opacity: 0.7,
@@ -164,13 +165,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   messageTextClient: {
-    color: '#002C2A',
+    color: theme.colors.textOnClient,
   },
   messageTextUser: {
-    color: '#002C2A',
+    color: theme.colors.textOnUser,
   },
   timestamp: {
-    color: '#66807F',
+    color: theme.colors.textSecondary,
     fontSize: 12,
     fontWeight: '500',
   },
@@ -180,6 +181,6 @@ const styles = StyleSheet.create({
   timestampRight: {
     textAlign: 'right',
   },
-});
+}));
 
 export default MessageItem;

@@ -1,5 +1,4 @@
-import React, { forwardRef, useCallback } from 'react';
-import { StyleSheet } from 'react-native';
+import React, { forwardRef, useCallback, useMemo } from 'react';
 import BottomSheet, {
   BottomSheetView,
   BottomSheetBackdrop,
@@ -8,25 +7,28 @@ import BottomSheet, {
 import type { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types';
 import { EmojiKeyboard } from 'rn-emoji-keyboard';
 import { hapticSelection } from '@/utils/haptics';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 const SNAP_POINTS = ['50%', '80%'];
-
-const EMOJI_KEYBOARD_THEME = {
-  container: '#FFFFFF',
-  header: '#1C1C1E',
-  category: {
-    icon: '#8E8E93',
-    iconActive: '#007AFF',
-    container: '#F2F2F7',
-    containerActive: '#E5E5EA',
-  },
-} as const;
 
 interface EmojiSheetProps {
   onEmojiSelected: (emoji: string) => void;
 }
 
 const EmojiSheet = forwardRef<BottomSheet, EmojiSheetProps>(({ onEmojiSelected }, ref) => {
+  const { theme } = useUnistyles();
+
+  const emojiKeyboardTheme = useMemo(() => ({
+    container: theme.colors.background,
+    header: theme.colors.emojiKeyboardHeader,
+    category: {
+      icon: theme.colors.emojiKeyboardIndicator,
+      iconActive: theme.colors.systemBlue,
+      container: theme.colors.emojiKeyboardBg,
+      containerActive: theme.colors.emojiKeyboardSearch,
+    },
+  } as const), [theme]);
+
   const animationConfigs = useBottomSheetSpringConfigs({
     damping: 80,
     stiffness: 400,
@@ -71,7 +73,7 @@ const EmojiSheet = forwardRef<BottomSheet, EmojiSheetProps>(({ onEmojiSelected }
           enableSearchBar
           enableRecentlyUsed
           categoryPosition="top"
-          theme={EMOJI_KEYBOARD_THEME}
+          theme={emojiKeyboardTheme}
         />
       </BottomSheetView>
     </BottomSheet>
@@ -82,17 +84,17 @@ EmojiSheet.displayName = 'EmojiSheet';
 
 export default EmojiSheet;
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   sheetBackground: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
   indicator: {
-    backgroundColor: '#C7C7CC',
+    backgroundColor: theme.colors.dragHandle,
     width: 36,
   },
   content: {
     flex: 1,
   },
-});
+}));

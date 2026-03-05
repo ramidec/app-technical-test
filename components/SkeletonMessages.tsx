@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -9,19 +9,20 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import type { SharedValue } from 'react-native-reanimated';
-
-const BONE_COLOR = '#DDE1E1';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
 function Bone({
   width,
   height,
   borderRadius = 8,
   progress,
+  color,
 }: {
   width: number;
   height: number;
   borderRadius?: number;
   progress: SharedValue<number>;
+  color: string;
 }) {
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: interpolate(
@@ -33,7 +34,7 @@ function Bone({
 
   return (
     <Animated.View
-      style={[{ width, height, borderRadius, backgroundColor: BONE_COLOR }, animatedStyle]}
+      style={[{ width, height, borderRadius, backgroundColor: color }, animatedStyle]}
     />
   );
 }
@@ -43,21 +44,23 @@ function SkeletonRow({
   widths,
   showAvatar,
   progress,
+  boneColor,
 }: {
   isRight: boolean;
   widths: number[];
   showAvatar: boolean;
   progress: SharedValue<number>;
+  boneColor: string;
 }) {
   return (
     <View style={[styles.outerRow, isRight ? styles.outerRowRight : styles.outerRowLeft]}>
       <View style={[styles.messageRow, { flexDirection: isRight ? 'row-reverse' : 'row' }]}>
         <View style={styles.avatarCol}>
-          {showAvatar && <Bone width={28} height={28} borderRadius={14} progress={progress} />}
+          {showAvatar && <Bone width={28} height={28} borderRadius={14} progress={progress} color={boneColor} />}
         </View>
         <View style={[styles.lines, isRight ? styles.linesRight : styles.linesLeft]}>
           {widths.map((w, i) => (
-            <Bone key={i} width={w} height={14} borderRadius={7} progress={progress} />
+            <Bone key={i} width={w} height={14} borderRadius={7} progress={progress} color={boneColor} />
           ))}
         </View>
       </View>
@@ -67,6 +70,7 @@ function SkeletonRow({
 
 export default function SkeletonMessages() {
   const progress = useSharedValue(0);
+  const { theme } = useUnistyles();
 
   useEffect(() => {
     progress.value = withRepeat(
@@ -78,20 +82,20 @@ export default function SkeletonMessages() {
 
   return (
     <View style={styles.container}>
-      <SkeletonRow isRight={false} widths={[160, 230, 100]} showAvatar={true}  progress={progress} />
-      <SkeletonRow isRight={true}  widths={[140]}           showAvatar={true}  progress={progress} />
-      <SkeletonRow isRight={false} widths={[200, 180]}      showAvatar={true}  progress={progress} />
-      <SkeletonRow isRight={true}  widths={[180, 130]}      showAvatar={false} progress={progress} />
-      <SkeletonRow isRight={true}  widths={[110]}           showAvatar={true}  progress={progress} />
-      <SkeletonRow isRight={false} widths={[190, 220, 120]} showAvatar={false} progress={progress} />
-      <SkeletonRow isRight={false} widths={[170]}           showAvatar={true}  progress={progress} />
-      <SkeletonRow isRight={true}  widths={[150, 110]}      showAvatar={true}  progress={progress} />
-      <SkeletonRow isRight={false} widths={[130]}           showAvatar={true}  progress={progress} />
+      <SkeletonRow isRight={false} widths={[160, 230, 100]} showAvatar={true}  progress={progress} boneColor={theme.colors.skeletonBase} />
+      <SkeletonRow isRight={true}  widths={[140]}           showAvatar={true}  progress={progress} boneColor={theme.colors.skeletonBase} />
+      <SkeletonRow isRight={false} widths={[200, 180]}      showAvatar={true}  progress={progress} boneColor={theme.colors.skeletonBase} />
+      <SkeletonRow isRight={true}  widths={[180, 130]}      showAvatar={false} progress={progress} boneColor={theme.colors.skeletonBase} />
+      <SkeletonRow isRight={true}  widths={[110]}           showAvatar={true}  progress={progress} boneColor={theme.colors.skeletonBase} />
+      <SkeletonRow isRight={false} widths={[190, 220, 120]} showAvatar={false} progress={progress} boneColor={theme.colors.skeletonBase} />
+      <SkeletonRow isRight={false} widths={[170]}           showAvatar={true}  progress={progress} boneColor={theme.colors.skeletonBase} />
+      <SkeletonRow isRight={true}  widths={[150, 110]}      showAvatar={true}  progress={progress} boneColor={theme.colors.skeletonBase} />
+      <SkeletonRow isRight={false} widths={[130]}           showAvatar={true}  progress={progress} boneColor={theme.colors.skeletonBase} />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
     paddingHorizontal: 16,
@@ -126,4 +130,4 @@ const styles = StyleSheet.create({
   linesRight: {
     alignItems: 'flex-end',
   },
-});
+}));

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
+import { StyleSheet } from 'react-native-unistyles';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { hapticImpact } from '@/utils/haptics';
@@ -65,18 +66,26 @@ export default function VideoAttachment({ attachment }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
     borderRadius: 12,
     overflow: 'hidden',
     marginTop: 6,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: theme.colors.imagePlaceholder,
   },
   thumbnail: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -84,7 +93,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: theme.colors.videoOverlay,
     alignItems: 'center',
     justifyContent: 'center',
     paddingLeft: 3,
@@ -93,14 +102,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 8,
     right: 8,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: theme.colors.videoDurationBg,
     borderRadius: 4,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   durationText: {
-    color: '#FFFFFF',
+    color: theme.colors.textWhite,
     fontSize: 11,
     fontWeight: '500',
   },
-});
+}));

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Modal, View, Pressable, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { Modal, View, Pressable, ActivityIndicator, Text } from 'react-native';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -29,6 +30,7 @@ export default function PdfViewerModal({
   downloading,
 }: Props) {
   const insets = useSafeAreaInsets();
+  const { theme } = useUnistyles();
 
   return (
     <Modal visible={visible} animationType="slide" statusBarTranslucent>
@@ -36,7 +38,7 @@ export default function PdfViewerModal({
         {/* Header bar */}
         <View style={styles.header}>
           <Pressable onPress={onClose} hitSlop={12} style={styles.headerButton}>
-            <Ionicons name="close" size={24} color="#002C2A" />
+            <Ionicons name="close" size={24} color={theme.colors.textPrimary} />
           </Pressable>
 
           <Text style={styles.headerTitle} numberOfLines={1}>{fileName}</Text>
@@ -48,9 +50,9 @@ export default function PdfViewerModal({
             style={styles.headerButton}
           >
             {downloading ? (
-              <ActivityIndicator size="small" color="#002C2A" />
+              <ActivityIndicator size="small" color={theme.colors.textPrimary} />
             ) : (
-              <Ionicons name="download-outline" size={24} color="#002C2A" />
+              <Ionicons name="download-outline" size={24} color={theme.colors.textPrimary} />
             )}
           </Pressable>
         </View>
@@ -60,7 +62,7 @@ export default function PdfViewerModal({
           <PdfView uri={uri} style={styles.pdf} doubleTapToZoom />
         ) : (
           <View style={styles.pdfFallback}>
-            <Ionicons name="document-text-outline" size={48} color="#8E8E93" />
+            <Ionicons name="document-text-outline" size={48} color={theme.colors.textSecondary} />
             <Text style={styles.pdfFallbackText}>PDF preview unavailable</Text>
           </View>
         )}
@@ -69,10 +71,10 @@ export default function PdfViewerModal({
   );
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
-    backgroundColor: '#F8F8F8',
+    backgroundColor: theme.colors.pdfBackground,
   },
   header: {
     flexDirection: 'row',
@@ -80,9 +82,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#E0E0E0',
+    backgroundColor: theme.colors.background,
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.colors.pdfHeaderBorder,
   },
   headerButton: {
     width: 36,
@@ -94,7 +96,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontWeight: '600',
-    color: '#002C2A',
+    color: theme.colors.textPrimary,
     textAlign: 'center',
     marginHorizontal: 8,
   },
@@ -109,6 +111,6 @@ const styles = StyleSheet.create({
   },
   pdfFallbackText: {
     fontSize: 15,
-    color: '#8E8E93',
+    color: theme.colors.textSecondary,
   },
-});
+}));

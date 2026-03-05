@@ -1,5 +1,5 @@
-import React, { forwardRef, useCallback } from 'react';
-import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
+import React, { forwardRef, useCallback, useMemo } from 'react';
+import { View, Text, Pressable, Alert } from 'react-native';
 import BottomSheet, {
   BottomSheetView,
   BottomSheetBackdrop,
@@ -10,20 +10,49 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { hapticImpact, hapticSelection } from '@/utils/haptics';
 import { ImpactFeedbackStyle } from 'expo-haptics';
+import { StyleSheet, useUnistyles } from 'react-native-unistyles';
 
-// --- Palette: soft tints that complement the app's #002C2A / #66807F teal scheme ---
-// Type is declared below with AttachmentOptionData; cast avoids forward-reference ordering issue.
-const ATTACHMENT_OPTIONS: readonly AttachmentOptionData[] = [
-  { icon: 'camera' as const, label: 'Camera', bg: '#FEF0EB', fg: '#D46B3C' },
-  { icon: 'images' as const, label: 'Photos', bg: '#E6FAF0', fg: '#2B8A5E' },
-  { icon: 'document-text' as const, label: 'File', bg: '#EBF2FE', fg: '#4272A8' },
-  { icon: 'mic' as const, label: 'Audio', bg: '#F3EDFC', fg: '#7558A0' },
-  { icon: 'videocam' as const, label: 'Video', bg: '#FCEBED', fg: '#B84D58' },
-  { icon: 'location' as const, label: 'Location', bg: '#E8F6F3', fg: '#35806F' },
-];
+// --- Individual Option ---
+
+interface AttachmentOptionData {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  bg: string;
+  fg: string;
+}
+
+function AttachmentOption({
+  option,
+  onPress,
+}: {
+  option: AttachmentOptionData;
+  onPress: (label: string) => void;
+}) {
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.option, pressed && styles.optionPressed]}
+      onPress={() => onPress(option.label)}
+    >
+      <View style={[styles.iconContainer, { backgroundColor: option.bg }]}>
+        <Ionicons name={option.icon} size={24} color={option.fg} />
+      </View>
+      <Text style={styles.optionLabel}>{option.label}</Text>
+    </Pressable>
+  );
+}
 
 const AttachmentSheet = forwardRef<BottomSheet>((_, ref) => {
   const insets = useSafeAreaInsets();
+  const { theme } = useUnistyles();
+
+  const attachmentOptions: readonly AttachmentOptionData[] = useMemo(() => [
+    { icon: 'camera' as const, label: 'Camera', bg: theme.colors.cameraBackground, fg: theme.colors.cameraIcon },
+    { icon: 'images' as const, label: 'Photos', bg: theme.colors.photosBackground, fg: theme.colors.photosIcon },
+    { icon: 'document-text' as const, label: 'File', bg: theme.colors.fileBackground, fg: theme.colors.fileIcon },
+    { icon: 'mic' as const, label: 'Audio', bg: theme.colors.audioBackground, fg: theme.colors.audioIcon },
+    { icon: 'videocam' as const, label: 'Video', bg: theme.colors.videoBackground, fg: theme.colors.videoIcon },
+    { icon: 'location' as const, label: 'Location', bg: theme.colors.locationBackground, fg: theme.colors.locationIcon },
+  ], [theme]);
 
   const animationConfigs = useBottomSheetSpringConfigs({
     damping: 80,
@@ -71,13 +100,13 @@ const AttachmentSheet = forwardRef<BottomSheet>((_, ref) => {
       <BottomSheetView style={[styles.content, { paddingBottom: bottomPadding }]}>
         {/* Row 1 */}
         <View style={styles.row}>
-          {ATTACHMENT_OPTIONS.slice(0, 3).map((option) => (
+          {attachmentOptions.slice(0, 3).map((option) => (
             <AttachmentOption key={option.label} option={option} onPress={handleOptionPress} />
           ))}
         </View>
         {/* Row 2 */}
         <View style={styles.row}>
-          {ATTACHMENT_OPTIONS.slice(3).map((option) => (
+          {attachmentOptions.slice(3).map((option) => (
             <AttachmentOption key={option.label} option={option} onPress={handleOptionPress} />
           ))}
         </View>
@@ -89,48 +118,19 @@ const AttachmentSheet = forwardRef<BottomSheet>((_, ref) => {
 AttachmentSheet.displayName = 'AttachmentSheet';
 export default AttachmentSheet;
 
-// --- Individual Option ---
-
-interface AttachmentOptionData {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  bg: string;
-  fg: string;
-}
-
-function AttachmentOption({
-  option,
-  onPress,
-}: {
-  option: AttachmentOptionData;
-  onPress: (label: string) => void;
-}) {
-  return (
-    <Pressable
-      style={({ pressed }) => [styles.option, pressed && styles.optionPressed]}
-      onPress={() => onPress(option.label)}
-    >
-      <View style={[styles.iconContainer, { backgroundColor: option.bg }]}>
-        <Ionicons name={option.icon} size={24} color={option.fg} />
-      </View>
-      <Text style={styles.optionLabel}>{option.label}</Text>
-    </Pressable>
-  );
-}
-
-const styles = StyleSheet.create({
+const styles = StyleSheet.create((theme) => ({
   sheetBackground: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.background,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    shadowColor: '#002C2A',
+    shadowColor: theme.colors.textPrimary,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.08,
     shadowRadius: 20,
     elevation: 8,
   },
   indicator: {
-    backgroundColor: '#D1D5D5',
+    backgroundColor: theme.colors.separator,
     width: 36,
     height: 4,
     borderRadius: 2,
@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   optionLabel: {
     fontSize: 13,
     fontWeight: '500',
-    color: '#002C2A',
+    color: theme.colors.textPrimary,
     textAlign: 'center',
   },
-});
+}));
