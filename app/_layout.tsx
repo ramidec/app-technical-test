@@ -1,9 +1,9 @@
-import { useEffect } from "react";
-import { Stack } from "expo-router";
+import { useEffect, useState } from "react";
+import { Stack, useRouter } from "expo-router";
 import { View, Text, Pressable, Alert, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 // Lazy — expo-audio uses NitroModules, unavailable in Expo Go
-let setAudioModeAsync: ((opts: any) => Promise<void>) | null = null;
+let setAudioModeAsync: ((opts: { playsInSilentMode: boolean }) => Promise<void>) | null = null;
 try {
   setAudioModeAsync = require("expo-audio").setAudioModeAsync;
 } catch {
@@ -12,15 +12,6 @@ try {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 60 * 5,
-      retry: 1,
-    },
-  },
-});
 
 function ChatHeaderTitle() {
   return (
@@ -39,8 +30,9 @@ function ChatHeaderTitle() {
 }
 
 function ChatHeaderLeft() {
+  const router = useRouter();
   return (
-    <Pressable hitSlop={8}>
+    <Pressable hitSlop={8} onPress={() => router.back()} accessibilityLabel="Go back" accessibilityRole="button">
       <Ionicons name="chevron-back" size={24} color="#002C2A" />
     </Pressable>
   );
@@ -58,6 +50,12 @@ function ChatHeaderRight() {
 }
 
 export default function RootLayout() {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: { retry: 1, staleTime: 30_000 },
+    },
+  }));
+
   // Enable audio playback on iOS silent mode
   useEffect(() => {
     setAudioModeAsync?.({ playsInSilentMode: true });

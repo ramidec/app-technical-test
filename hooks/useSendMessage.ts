@@ -1,9 +1,9 @@
+import { Alert } from 'react-native';
 import { useMutation, useQueryClient, InfiniteData } from '@tanstack/react-query';
 import { sendMessage } from '@/services/mockMessages';
 import { Message, MessageRole, MessagesPage } from '@/types/message';
 import { setCachedMessages } from '@/services/storage';
-
-const CHANNEL_ID = 'mock-channel';
+import { CHANNEL_ID } from '@/constants/channels';
 
 export function useSendMessage() {
   const queryClient = useQueryClient();
@@ -57,10 +57,13 @@ export function useSendMessage() {
           context.previous
         );
       }
+      Alert.alert('Message failed', 'Your message could not be sent. Please try again.');
     },
 
     onSuccess: (serverMessage, _content, context) => {
       // Replace optimistic message with server-confirmed message
+      let allMessages: Message[] = [];
+
       queryClient.setQueryData<InfiniteData<MessagesPage>>(
         ['messages', CHANNEL_ID],
         (old) => {
@@ -76,11 +79,13 @@ export function useSendMessage() {
               ),
             })),
           };
-          // Persist to MMKV
-          setCachedMessages(updated.pages.flatMap(p => p.messages));
+          allMessages = updated.pages.flatMap(p => p.messages);
           return updated;
         }
       );
+
+      // Side effect OUTSIDE the updater
+      setCachedMessages(allMessages);
     },
   });
 }

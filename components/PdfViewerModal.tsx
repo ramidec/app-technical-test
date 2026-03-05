@@ -22,6 +22,7 @@ interface Props {
 
 export default function PdfViewerModal({
   uri,
+  fileName,
   visible,
   onClose,
   onDownload,
@@ -37,6 +38,8 @@ export default function PdfViewerModal({
           <Pressable onPress={onClose} hitSlop={12} style={styles.headerButton}>
             <Ionicons name="close" size={24} color="#002C2A" />
           </Pressable>
+
+          <Text style={styles.headerTitle} numberOfLines={1}>{fileName}</Text>
 
           <Pressable
             onPress={onDownload}
@@ -86,6 +89,14 @@ const styles = StyleSheet.create({
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#002C2A',
+    textAlign: 'center',
+    marginHorizontal: 8,
   },
   pdf: {
     flex: 1,

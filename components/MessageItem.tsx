@@ -1,24 +1,27 @@
-import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { Dimensions, Image, StyleSheet, Text, View } from 'react-native';
 import { Message, MessageRole, MessageAttachment } from '@/types/message';
 import ImageAttachmentView from '@/components/attachments/ImageAttachment';
 import AudioAttachmentView from '@/components/attachments/AudioAttachment';
 import VideoAttachmentView from '@/components/attachments/VideoAttachment';
 import FileAttachmentView from '@/components/attachments/FileAttachment';
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const BUBBLE_MAX_WIDTH = SCREEN_WIDTH * 0.75;
+
 interface MessageItemProps {
   message: Message;
   isLastInGroup: boolean;
 }
 
-const MessageItem = ({ message, isLastInGroup }: MessageItemProps) => {
+const MessageItem = React.memo(function MessageItem({ message, isLastInGroup }: MessageItemProps) {
   const isUser = message.role === MessageRole.User;
   const isSending = message.status === 'sending';
 
-  const timestamp = new Date(message.createdAt).toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+  const timestamp = useMemo(
+    () => new Date(message.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }),
+    [message.createdAt],
+  );
 
   return (
     <View
@@ -38,11 +41,14 @@ const MessageItem = ({ message, isLastInGroup }: MessageItemProps) => {
         </View>
 
         {/* Bubble */}
-        <View style={[
-          styles.bubble,
-          isUser ? styles.bubbleUser : styles.bubbleClient,
-          isSending && styles.bubbleSending,
-        ]}>
+        <View
+          accessibilityRole="text"
+          style={[
+            styles.bubble,
+            isUser ? styles.bubbleUser : styles.bubbleClient,
+            isSending && styles.bubbleSending,
+          ]}
+        >
           <Text style={[styles.messageText, isUser ? styles.messageTextUser : styles.messageTextClient]}>
             {message.content}
           </Text>
@@ -62,7 +68,7 @@ const MessageItem = ({ message, isLastInGroup }: MessageItemProps) => {
       </View>
     </View>
   );
-};
+});
 
 function AvatarThumbnail({ name, uri }: { name?: string; uri?: string }) {
   if (uri) {
@@ -97,7 +103,7 @@ function AttachmentRenderer({ attachment, isUser }: { attachment: MessageAttachm
 const styles = StyleSheet.create({
   outerRow: {
     marginBottom: 8,
-    maxWidth: 358,
+    maxWidth: BUBBLE_MAX_WIDTH,
   },
   outerRowLeft: {
     alignSelf: 'flex-start',

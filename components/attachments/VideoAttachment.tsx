@@ -54,11 +54,13 @@ export default function VideoAttachment({ attachment }: Props) {
           </View>
         </View>
       </Pressable>
-      <VideoPlayerModal
-        uri={attachment.uri}
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-      />
+      {modalVisible && (
+        <VideoPlayerModal
+          uri={attachment.uri}
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+        />
+      )}
     </>
   );
 }

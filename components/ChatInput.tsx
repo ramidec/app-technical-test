@@ -40,8 +40,6 @@ const SWIPE_THRESHOLD = 50;
 // Vertical chrome: non-input space inside the component
 // container(paddingTop 8 + paddingBottom 8) + chatbar(paddingTop 16 + paddingBottom 12 + gap 12 + border 2) + actionsRow(36)
 const CHROME_BASE = 94;
-// Extra chrome when drag handle is visible: dragHandle(8) + gap(12)
-const CHROME_DRAG_HANDLE = 20;
 // Non-input chrome excluding containerPaddingBottom:
 // container.paddingTop(8) + chatbar.border(2) + chatbar.paddingTop(16)
 // + chatbar.gap(12) + actionsRow(36) + chatbar.paddingBottom(12)
@@ -140,7 +138,10 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
 
     // Keyboard animation — needed in gesture worklets for padding calculation
     const { progress: kbProgress } = useReanimatedKeyboardAnimation();
-    const fullPadding = Math.max(insets.bottom, 8) + 8;
+    const fullPaddingSV = useSharedValue(Math.max(insets.bottom, 8) + 8);
+    useEffect(() => {
+      fullPaddingSV.value = Math.max(insets.bottom, 8) + 8;
+    }, [insets.bottom]);
     const kbPadding = 8;
 
     const panGesture = Gesture.Pan()
@@ -151,7 +152,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
         const currentPadBottom = interpolate(
           kbProgress.value,
           [0, 1],
-          [fullPadding, kbPadding],
+          [fullPaddingSV.value, kbPadding],
         );
 
         if (isExpanded.value < 0.5) {
@@ -180,7 +181,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
         const currentPadBottom = interpolate(
           kbProgress.value,
           [0, 1],
-          [fullPadding, kbPadding],
+          [fullPaddingSV.value, kbPadding],
         );
 
         if (swipedUp && isExpanded.value < 0.5) {
@@ -223,7 +224,8 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
         isExpanded.value = 0;
         setIsExpandedJS(false);
         onExpandedChange?.(false);
-        const collapsedH = CHROME_NO_BOTTOM + inputHeight.value + fullPadding;
+        const collapsedH =
+          CHROME_NO_BOTTOM + inputHeight.value + fullPaddingSV.value;
         containerHeight.value = withSpring(
           collapsedH,
           SPRING_CONFIG,
@@ -241,7 +243,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       isExpanded,
       containerHeight,
       inputHeight,
-      fullPadding,
+      fullPaddingSV,
       onExpandedChange,
     ]);
 
@@ -267,11 +269,22 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       setScrollEnabled(false);
       inputHeight.value = MIN_HEIGHT;
       // Always reset container height (safety: ensures no stuck gesture state)
-      containerHeight.value = 0;
       if (isExpandedJS) {
         isExpanded.value = 0;
-        setIsExpandedJS(false);
-        onExpandedChange?.(false);
+        containerHeight.value = withSpring(
+          0,
+          { damping: 20, stiffness: 300 },
+          (finished) => {
+            if (finished) {
+              runOnJS(setIsExpandedJS)(false);
+              if (onExpandedChange) {
+                runOnJS(onExpandedChange)(false);
+              }
+            }
+          },
+        );
+      } else {
+        containerHeight.value = withSpring(0, { damping: 20, stiffness: 300 });
       }
     }, [
       text,
@@ -312,7 +325,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       const padBottom = interpolate(
         kbProgress.value,
         [0, 1],
-        [fullPadding, kbPadding],
+        [fullPaddingSV.value, kbPadding],
       );
       if (containerHeight.value <= 0) {
         return {
@@ -347,7 +360,11 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
           <Animated.View style={[styles.chatbar, chatbarAnimatedStyle]}>
             {/* Drag handle (visible when expanded) */}
             {isExpandedJS && (
-              <View style={styles.dragHandle}>
+              <View
+                style={styles.dragHandle}
+                accessibilityLabel="Collapse input"
+                accessibilityRole="button"
+              >
                 <View style={styles.dragHandlePill} />
               </View>
             )}
@@ -378,10 +395,12 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
                 <ChatBarButton
                   icon="attach-outline"
                   onPress={handleAttachPress}
+                  accessibilityLabel="Add attachment"
                 />
                 <ChatBarButton
                   icon="happy-outline"
                   onPress={handleEmojiPress}
+                  accessibilityLabel="Open emoji picker"
                 />
               </View>
               <SendButton hasText={hasText} onSend={handleSend} />
@@ -401,13 +420,15 @@ export default ChatInput;
 interface ChatBarButtonProps {
   icon: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
+  accessibilityLabel?: string;
 }
 
-function ChatBarButton({ icon, onPress }: ChatBarButtonProps) {
+function ChatBarButton({ icon, onPress, accessibilityLabel }: ChatBarButtonProps) {
   return (
     <Pressable
       onPress={onPress}
       hitSlop={6}
+      accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [
         styles.chatBarButton,
         pressed && styles.chatBarButtonPressed,
@@ -425,7 +446,10 @@ interface SendButtonProps {
   onSend: () => void;
 }
 
-function SendButton({ hasText, onSend }: SendButtonProps) {
+const SendButton = React.memo(function SendButton({
+  hasText,
+  onSend,
+}: SendButtonProps) {
   const progress = useSharedValue(0);
   const pressScale = useSharedValue(1);
 
@@ -469,6 +493,7 @@ function SendButton({ hasText, onSend }: SendButtonProps) {
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         hitSlop={8}
+        accessibilityLabel="Send message"
       >
         <Animated.View style={[styles.sendButton, animatedButtonStyle]}>
           <Ionicons
@@ -480,7 +505,7 @@ function SendButton({ hasText, onSend }: SendButtonProps) {
       </Pressable>
     </Animated.View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

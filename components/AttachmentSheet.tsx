@@ -12,7 +12,8 @@ import { hapticImpact, hapticSelection } from '@/utils/haptics';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 
 // --- Palette: soft tints that complement the app's #002C2A / #66807F teal scheme ---
-const ATTACHMENT_OPTIONS = [
+// Type is declared below with AttachmentOptionData; cast avoids forward-reference ordering issue.
+const ATTACHMENT_OPTIONS: readonly AttachmentOptionData[] = [
   { icon: 'camera' as const, label: 'Camera', bg: '#FEF0EB', fg: '#D46B3C' },
   { icon: 'images' as const, label: 'Photos', bg: '#E6FAF0', fg: '#2B8A5E' },
   { icon: 'document-text' as const, label: 'File', bg: '#EBF2FE', fg: '#4272A8' },
@@ -29,7 +30,7 @@ const AttachmentSheet = forwardRef<BottomSheet>((_, ref) => {
     stiffness: 400,
     mass: 0.5,
     overshootClamping: false,
-  } as any);
+  });
 
   const handleOptionPress = useCallback((label: string) => {
     hapticImpact(ImpactFeedbackStyle.Light);

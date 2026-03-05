@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useMemo } from 'react';
+import React, { forwardRef, useCallback } from 'react';
 import { StyleSheet } from 'react-native';
 import BottomSheet, {
   BottomSheetView,
@@ -9,19 +9,30 @@ import type { BottomSheetDefaultBackdropProps } from '@gorhom/bottom-sheet/lib/t
 import { EmojiKeyboard } from 'rn-emoji-keyboard';
 import { hapticSelection } from '@/utils/haptics';
 
+const SNAP_POINTS = ['50%', '80%'];
+
+const EMOJI_KEYBOARD_THEME = {
+  container: '#FFFFFF',
+  header: '#1C1C1E',
+  category: {
+    icon: '#8E8E93',
+    iconActive: '#007AFF',
+    container: '#F2F2F7',
+    containerActive: '#E5E5EA',
+  },
+} as const;
+
 interface EmojiSheetProps {
   onEmojiSelected: (emoji: string) => void;
 }
 
 const EmojiSheet = forwardRef<BottomSheet, EmojiSheetProps>(({ onEmojiSelected }, ref) => {
-  const snapPoints = useMemo(() => ['50%', '80%'], []);
-
   const animationConfigs = useBottomSheetSpringConfigs({
     damping: 80,
     stiffness: 400,
     mass: 0.5,
     overshootClamping: false,
-  } as any);
+  });
 
   const renderBackdrop = useCallback(
     (props: BottomSheetDefaultBackdropProps) => (
@@ -43,7 +54,7 @@ const EmojiSheet = forwardRef<BottomSheet, EmojiSheetProps>(({ onEmojiSelected }
     <BottomSheet
       ref={ref}
       index={-1}
-      snapPoints={snapPoints}
+      snapPoints={SNAP_POINTS}
       enablePanDownToClose
       backdropComponent={renderBackdrop}
       onChange={handleSheetChange}
@@ -60,16 +71,7 @@ const EmojiSheet = forwardRef<BottomSheet, EmojiSheetProps>(({ onEmojiSelected }
           enableSearchBar
           enableRecentlyUsed
           categoryPosition="top"
-          theme={{
-            container: '#FFFFFF',
-            header: '#1C1C1E',
-            category: {
-              icon: '#8E8E93',
-              iconActive: '#007AFF',
-              container: '#F2F2F7',
-              containerActive: '#E5E5EA',
-            },
-          }}
+          theme={EMOJI_KEYBOARD_THEME}
         />
       </BottomSheetView>
     </BottomSheet>

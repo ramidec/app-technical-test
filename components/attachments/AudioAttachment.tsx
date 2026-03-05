@@ -21,6 +21,35 @@ interface Props {
 const SPEEDS = [1, 1.5, 2] as const;
 const THUMB_SIZE = 12;
 
+const AUDIO_THEME = {
+  user: {
+    icon: '#FFFFFF',
+    elapsed: '#FFFFFF',
+    duration: '#FFFFFF',
+    trackFilled: '#FFFFFF',
+    trackUnfilled: 'rgba(255,255,255,0.25)',
+    thumbStroke: '#FFFFFF',
+    thumbFill: 'rgba(230,250,240,1)',
+    buttonBg: 'rgba(255,255,255,0.18)',
+    buttonBorder: 'rgba(255,255,255,0.25)',
+    speed: 'rgba(255,255,255,0.7)',
+    wrapperBg: 'rgba(255,255,255,0.12)',
+  },
+  client: {
+    icon: '#002C2A',
+    elapsed: '#002C2A',
+    duration: '#002C2A',
+    trackFilled: '#002C2A',
+    trackUnfilled: '#C4CECE',
+    thumbStroke: '#002C2A',
+    thumbFill: '#F2F4F4',
+    buttonBg: '#E8EAEA',
+    buttonBorder: '#D5DADA',
+    speed: '#002C2A',
+    wrapperBg: '#FFFFFF',
+  },
+} as const;
+
 function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = Math.floor(seconds % 60);
@@ -36,19 +65,7 @@ export default function AudioAttachment({ attachment, isUser }: Props) {
   const thumbScale = useSharedValue(1);
 
   // --- Colour tokens ---
-  // Inbound (client) bubble: dark teal on light gray
-  // Outbound (user) bubble: white on green
-  const iconColor = isUser ? '#FFFFFF' : '#002C2A';
-  const elapsedColor = isUser ? '#FFFFFF' : '#002C2A';
-  const durationColor = isUser ? '#FFFFFF' : '#002C2A';
-  const trackFilledColor = isUser ? '#FFFFFF' : '#002C2A';
-  const trackUnfilledColor = isUser ? 'rgba(255,255,255,0.25)' : '#C4CECE';
-  const thumbStrokeColor = isUser ? '#FFFFFF' : '#002C2A';
-  const thumbFillColor = isUser ? 'rgba(230,250,240,1)' : '#F2F4F4';
-  const buttonBg = isUser ? 'rgba(255,255,255,0.18)' : '#E8EAEA';
-  const buttonBorder = isUser ? 'rgba(255,255,255,0.25)' : '#D5DADA';
-  const speedColor = isUser ? 'rgba(255,255,255,0.7)' : '#002C2A';
-  const wrapperBg = isUser ? 'rgba(255,255,255,0.12)' : '#FFFFFF';
+  const colors = AUDIO_THEME[isUser ? 'user' : 'client'];
 
   // --- Computed ---
   const duration = status.duration > 0 ? status.duration : (attachment.durationMs / 1000);
@@ -123,23 +140,23 @@ export default function AudioAttachment({ attachment, isUser }: Props) {
   }));
 
   return (
-    <View style={[styles.wrapper, { backgroundColor: wrapperBg }]}>
+    <View style={[styles.wrapper, { backgroundColor: colors.wrapperBg }]}>
     <View style={styles.container}>
       {/* ▶ Play / Pause rounded-rect button */}
       <Pressable
         onPress={handlePlayPause}
-        style={[styles.controlButton, { backgroundColor: buttonBg, borderColor: buttonBorder }]}
+        style={[styles.controlButton, { backgroundColor: colors.buttonBg, borderColor: colors.buttonBorder }]}
       >
         <Ionicons
           name={status.playing ? 'pause' : 'play'}
           size={16}
-          color={iconColor}
+          color={colors.icon}
           style={!status.playing && styles.playIconNudge}
         />
       </Pressable>
 
       {/* Elapsed time */}
-      <Text style={[styles.timeText, { color: elapsedColor }]}>
+      <Text style={[styles.timeText, { color: colors.elapsed }]}>
         {formatTime(currentTime)}
       </Text>
 
@@ -147,13 +164,13 @@ export default function AudioAttachment({ attachment, isUser }: Props) {
       <GestureDetector gesture={composed}>
         <View style={styles.sliderHitArea} onLayout={onTrackLayout}>
           {/* Unfilled track */}
-          <View style={[styles.track, { backgroundColor: trackUnfilledColor }]} />
+          <View style={[styles.track, { backgroundColor: colors.trackUnfilled }]} />
           {/* Filled track */}
           <View
             style={[
               styles.trackFill,
               {
-                backgroundColor: trackFilledColor,
+                backgroundColor: colors.trackFilled,
                 width: `${progress * 100}%`,
               },
             ]}
@@ -164,8 +181,8 @@ export default function AudioAttachment({ attachment, isUser }: Props) {
               styles.thumb,
               {
                 left: `${progress * 100}%`,
-                borderColor: thumbStrokeColor,
-                backgroundColor: thumbFillColor,
+                borderColor: colors.thumbStroke,
+                backgroundColor: colors.thumbFill,
               },
               thumbAnimatedStyle,
             ]}
@@ -174,16 +191,16 @@ export default function AudioAttachment({ attachment, isUser }: Props) {
       </GestureDetector>
 
       {/* Duration */}
-      <Text style={[styles.timeText, { color: durationColor }]}>
+      <Text style={[styles.timeText, { color: colors.duration }]}>
         {formatTime(duration)}
       </Text>
 
       {/* ×1 Speed rounded-rect badge */}
       <Pressable
         onPress={handleSpeedToggle}
-        style={[styles.controlButton, { backgroundColor: buttonBg, borderColor: buttonBorder }]}
+        style={[styles.controlButton, { backgroundColor: colors.buttonBg, borderColor: colors.buttonBorder }]}
       >
-        <Text style={[styles.speedText, { color: speedColor }]}>
+        <Text style={[styles.speedText, { color: colors.speed }]}>
           ×{SPEEDS[speedIndex]}
         </Text>
       </Pressable>

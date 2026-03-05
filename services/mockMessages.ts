@@ -4,6 +4,9 @@ import {
   MessageRole,
   MessagesPage,
   MessageAttachment,
+  AudioAttachment,
+  VideoAttachment,
+  FileAttachment,
 } from '@/types/message';
 
 // --- Sample attachment data ---
@@ -60,9 +63,9 @@ async function ensureLocalAssets(): Promise<void> {
     Asset.fromModule(require('@/assets/media/sample-document.pdf')).downloadAsync(),
   ]);
 
-  (SAMPLE_AUDIO as any).uri = audioAsset.localUri ?? audioAsset.uri;
-  (SAMPLE_VIDEO as any).uri = videoAsset.localUri ?? videoAsset.uri;
-  (SAMPLE_FILE as any).uri = pdfAsset.localUri ?? pdfAsset.uri;
+  (SAMPLE_AUDIO as AudioAttachment).uri = audioAsset.localUri ?? audioAsset.uri ?? '';
+  (SAMPLE_VIDEO as VideoAttachment).uri = videoAsset.localUri ?? videoAsset.uri ?? '';
+  (SAMPLE_FILE as FileAttachment).uri = pdfAsset.localUri ?? pdfAsset.uri ?? '';
 
   assetsResolved = true;
 }

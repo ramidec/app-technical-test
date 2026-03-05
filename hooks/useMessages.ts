@@ -1,10 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { fetchMessages } from '@/services/mockMessages';
 import { Message } from '@/types/message';
 import { getCachedMessages, setCachedMessages } from '@/services/storage';
-
-const CHANNEL_ID = 'mock-channel';
+import { CHANNEL_ID } from '@/constants/channels';
 
 export function useMessages() {
   // Read cached messages synchronously on first render (< 1ms via MMKV)
@@ -28,7 +27,10 @@ export function useMessages() {
   }, [query.hasNextPage, query.isFetchingNextPage, query.fetchNextPage]);
 
   // Flatten pages into a single sorted array
-  const freshMessages: Message[] = query.data?.pages.flatMap(page => page.messages) ?? [];
+  const freshMessages = useMemo<Message[]>(
+    () => query.data?.pages.flatMap(page => page.messages) ?? [],
+    [query.data],
+  );
 
   // Only "fully loaded" once initial + all subsequent pages are done
   const isFullyLoaded =

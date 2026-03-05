@@ -3,7 +3,6 @@ import {
   StyleSheet,
   StatusBar,
   View,
-  ActivityIndicator,
   Keyboard,
   Pressable,
 } from "react-native";
@@ -16,6 +15,7 @@ import {
 } from "react-native-keyboard-controller";
 import BottomSheet from "@gorhom/bottom-sheet";
 import MessageItem from "@/components/MessageItem";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import {
   computeMessageGrouping,
   MessageWithGrouping,
@@ -41,9 +41,6 @@ export default function ChatScreen() {
   const {
     messages,
     isLoading: dataLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
   } = useMessages();
   const sendMutation = useSendMessage();
   const groupedMessages = useMemo(
@@ -65,27 +62,30 @@ export default function ChatScreen() {
   const dataReady = !dataLoading && groupedMessages.length > 0;
 
   useEffect(() => {
-    if (dataReady && minTimeElapsed && showSkeleton) {
-      let count = 0;
-      const scroll = () => {
-        flashListRef.current?.scrollToEnd({ animated: false });
-        count++;
-        if (count < 15) {
-          setTimeout(scroll, 100);
-        } else {
-          setShowSkeleton(false);
-          // After skeleton removal, maintainVisibleContentPosition switches on
-          // which can shift scroll position. Do final scrolls after layout settles.
-          setTimeout(() => {
-            flashListRef.current?.scrollToEnd({ animated: false });
-          }, 100);
-          setTimeout(() => {
-            flashListRef.current?.scrollToEnd({ animated: false });
-          }, 300);
-        }
-      };
-      scroll();
-    }
+    if (!dataReady || !minTimeElapsed || !showSkeleton) return;
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+    let count = 0;
+    const scroll = () => {
+      flashListRef.current?.scrollToEnd({ animated: false });
+      count++;
+      if (count < 15) {
+        timeoutId = setTimeout(scroll, 100);
+      } else {
+        setShowSkeleton(false);
+        // After skeleton removal, maintainVisibleContentPosition switches on
+        // which can shift scroll position. Do final scrolls after layout settles.
+        setTimeout(() => {
+          flashListRef.current?.scrollToEnd({ animated: false });
+        }, 100);
+        setTimeout(() => {
+          flashListRef.current?.scrollToEnd({ animated: false });
+        }, 300);
+      }
+    };
+    scroll();
+
+    return () => clearTimeout(timeoutId);
   }, [dataReady, minTimeElapsed, showSkeleton]);
 
   const scrollToEndInstant = useCallback(() => {
@@ -127,11 +127,14 @@ export default function ChatScreen() {
     [sendMutation],
   );
 
-  const handleEndReached = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  // NOTE: Auto-fetch in useMessages loads all pages eagerly; scroll-based pagination is unused.
+
+  const renderItem = useCallback(
+    ({ item }: { item: MessageWithGrouping }) => (
+      <MessageItem message={item} isLastInGroup={item.isLastInGroup} />
+    ),
+    [],
+  );
 
   const handleAttachPress = useCallback(() => {
     Keyboard.dismiss();
@@ -152,82 +155,73 @@ export default function ChatScreen() {
   }, []);
 
   return (
-    <View style={styles.root}>
-      {showSkeleton && (
-        <View style={styles.skeletonOverlay}>
-          <SkeletonMessages />
-        </View>
-      )}
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior="padding"
-        keyboardVerticalOffset={insets.top + 56}
-      >
-        <StatusBar barStyle="dark-content" />
-
-        <View
-          style={styles.listWrapper}
-          onLayout={(e) => setAvailableHeight(e.nativeEvent.layout.height)}
-        >
-          <View style={styles.listArea}>
-            <FlashList<MessageWithGrouping>
-              ref={flashListRef}
-              data={groupedMessages}
-              renderItem={({ item }) => (
-                <MessageItem message={item} isLastInGroup={item.isLastInGroup} />
-              )}
-              keyExtractor={(item) => item.id}
-              estimatedItemSize={120}
-              initialScrollIndex={
-                groupedMessages.length > 0
-                  ? groupedMessages.length - 1
-                  : undefined
-              }
-              style={styles.list}
-              contentContainerStyle={styles.listContent}
-              maintainVisibleContentPosition={
-                showSkeleton ? undefined : { autoscrollToTopThreshold: 10 }
-              }
-              keyboardDismissMode="on-drag"
-              keyboardShouldPersistTaps="handled"
-              onEndReached={handleEndReached}
-              onEndReachedThreshold={0.3}
-              ListHeaderComponent={
-                isFetchingNextPage ? (
-                  <View style={styles.paginationLoader}>
-                    <ActivityIndicator size="small" color="#8E8E93" />
-                  </View>
-                ) : null
-              }
-            />
-            <BottomFade />
+    <ErrorBoundary>
+      <View style={styles.root}>
+        {showSkeleton && (
+          <View style={styles.skeletonOverlay}>
+            <SkeletonMessages />
           </View>
-          {isInputExpanded && (
-            <Pressable
-              style={StyleSheet.absoluteFill}
-              onPress={() => {
-                chatInputRef.current?.collapse();
-              }}
-            />
-          )}
-          <ChatInput
-            ref={chatInputRef}
-            onSend={handleSend}
-            onAttachPress={handleAttachPress}
-            onEmojiPress={handleEmojiPress}
-            pendingEmoji={pendingEmoji}
-            onPendingEmojiConsumed={() => setPendingEmoji("")}
-            onExpandedChange={setIsInputExpanded}
-            maxExpandedHeight={
-              availableHeight > 0 ? availableHeight : undefined
-            }
-          />
-        </View>
-      </KeyboardAvoidingView>
+        )}
+        <KeyboardAvoidingView
+          style={styles.container}
+          behavior="padding"
+          keyboardVerticalOffset={insets.top + 56}
+        >
+          <StatusBar barStyle="dark-content" />
 
-      <AttachmentSheet ref={attachmentSheetRef} />
-      <EmojiSheet ref={emojiSheetRef} onEmojiSelected={handleEmojiSelected} />
-    </View>
+          <View
+            style={styles.listWrapper}
+            onLayout={(e) => setAvailableHeight(e.nativeEvent.layout.height)}
+          >
+            <View style={styles.listArea}>
+              <FlashList<MessageWithGrouping>
+                ref={flashListRef}
+                data={groupedMessages}
+                renderItem={renderItem}
+                keyExtractor={(item) => item.id}
+
+                initialScrollIndex={
+                  groupedMessages.length > 0
+                    ? groupedMessages.length - 1
+                    : undefined
+                }
+                style={styles.list}
+                contentContainerStyle={styles.listContent}
+                maintainVisibleContentPosition={
+                  showSkeleton ? undefined : { autoscrollToTopThreshold: 10 }
+                }
+                keyboardDismissMode="on-drag"
+                keyboardShouldPersistTaps="handled"
+              />
+              <BottomFade />
+            </View>
+            {isInputExpanded && (
+              <Pressable
+                style={StyleSheet.absoluteFill}
+                onPress={() => {
+                  chatInputRef.current?.collapse();
+                }}
+              />
+            )}
+            <ChatInput
+              ref={chatInputRef}
+              onSend={handleSend}
+              onAttachPress={handleAttachPress}
+              onEmojiPress={handleEmojiPress}
+              pendingEmoji={pendingEmoji}
+              onPendingEmojiConsumed={() => setPendingEmoji("")}
+              onExpandedChange={setIsInputExpanded}
+              maxExpandedHeight={
+                availableHeight > 0 ? availableHeight : undefined
+              }
+            />
+          </View>
+        </KeyboardAvoidingView>
+
+        <AttachmentSheet ref={attachmentSheetRef} />
+        <EmojiSheet ref={emojiSheetRef} onEmojiSelected={handleEmojiSelected} />
+      </View>
+    </ErrorBoundary>
   );
 }
 
@@ -259,9 +253,5 @@ const styles = StyleSheet.create({
     paddingRight: 16,
     paddingBottom: 16,
     paddingLeft: 16,
-  },
-  paginationLoader: {
-    paddingVertical: 12,
-    alignItems: "center",
   },
 });

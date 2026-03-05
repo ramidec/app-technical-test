@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { StyleSheet, View, Text, Pressable, ActivityIndicator } from 'react-native';
+import { Alert, StyleSheet, View, Text, Pressable, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { hapticImpact } from '@/utils/haptics';
 import { ImpactFeedbackStyle } from 'expo-haptics';
@@ -33,7 +33,7 @@ export default function FileAttachment({ attachment, isUser }: Props) {
     try {
       await downloadAndOpenFile(attachment.uri, attachment.fileName);
     } catch (e) {
-      console.warn('File open failed:', e);
+      Alert.alert('Error', 'Failed to open file. Please try again.');
     } finally {
       setDownloading(false);
     }

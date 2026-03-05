@@ -1,13 +1,13 @@
 import * as Haptics from 'expo-haptics';
 
-export const hapticImpact = async (style: Haptics.ImpactFeedbackStyle) => {
-  await Haptics.impactAsync(style);
-};
+export function hapticImpact(style: Haptics.ImpactFeedbackStyle): void {
+  Haptics.impactAsync(style).catch(() => {});
+}
 
-export const hapticSelection = async () => {
-  await Haptics.selectionAsync();
-};
+export function hapticSelection(): void {
+  Haptics.selectionAsync().catch(() => {});
+}
 
-export const hapticNotification = async (type: Haptics.NotificationFeedbackType) => {
-  await Haptics.notificationAsync(type);
-};
+export function hapticNotification(type: Haptics.NotificationFeedbackType): void {
+  Haptics.notificationAsync(type).catch(() => {});
+}
