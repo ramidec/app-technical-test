@@ -140,11 +140,13 @@ export default function ChatScreen() {
         style={styles.container}
         behavior="padding"
         keyboardVerticalOffset={insets.top + 56}
-        onLayout={(e) => setAvailableHeight(e.nativeEvent.layout.height)}
       >
         <StatusBar barStyle="dark-content" />
 
-        <View style={styles.listWrapper}>
+        <View
+          style={styles.listWrapper}
+          onLayout={(e) => setAvailableHeight(e.nativeEvent.layout.height)}
+        >
           <FlashList<MessageWithGrouping>
             ref={flashListRef}
             data={groupedMessages}
@@ -184,20 +186,19 @@ export default function ChatScreen() {
               }}
             />
           )}
+          <ChatInput
+            ref={chatInputRef}
+            onSend={handleSend}
+            onAttachPress={handleAttachPress}
+            onEmojiPress={handleEmojiPress}
+            pendingEmoji={pendingEmoji}
+            onPendingEmojiConsumed={() => setPendingEmoji("")}
+            onExpandedChange={setIsInputExpanded}
+            maxExpandedHeight={
+              availableHeight > 0 ? availableHeight : undefined
+            }
+          />
         </View>
-
-        <ChatInput
-          ref={chatInputRef}
-          onSend={handleSend}
-          onAttachPress={handleAttachPress}
-          onEmojiPress={handleEmojiPress}
-          pendingEmoji={pendingEmoji}
-          onPendingEmojiConsumed={() => setPendingEmoji("")}
-          onExpandedChange={setIsInputExpanded}
-          maxExpandedHeight={
-            availableHeight > 0 ? availableHeight * 0.7 : undefined
-          }
-        />
       </KeyboardAvoidingView>
 
       <AttachmentSheet ref={attachmentSheetRef} />
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingTop: 8,
     paddingRight: 16,
-    paddingBottom: 32,
+    paddingBottom: 200,
     paddingLeft: 16,
   },
   paginationLoader: {

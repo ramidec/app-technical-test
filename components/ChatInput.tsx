@@ -38,10 +38,14 @@ const EXPAND_SPRING = { damping: 25, stiffness: 180, mass: 0.8 } as const;
 const SWIPE_THRESHOLD = 50;
 
 // Vertical chrome: non-input space inside the component
-// container(paddingTop 8 + paddingBottom 8) + chatbar(paddingTop 24 + paddingBottom 8 + gap 12) + actionsRow(36)
-const CHROME_BASE = 96;
+// container(paddingTop 8 + paddingBottom 8) + chatbar(paddingTop 16 + paddingBottom 12 + gap 12 + border 2) + actionsRow(36)
+const CHROME_BASE = 94;
 // Extra chrome when drag handle is visible: dragHandle(8) + gap(12)
 const CHROME_DRAG_HANDLE = 20;
+// Non-input chrome excluding containerPaddingBottom:
+// container.paddingTop(8) + chatbar.border(2) + chatbar.paddingTop(16)
+// + chatbar.gap(12) + actionsRow(36) + chatbar.paddingBottom(12)
+const CHROME_NO_BOTTOM = 86;
 
 export interface ChatInputRef {
   collapse: () => void;
@@ -79,15 +83,12 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     const [scrollEnabled, setScrollEnabled] = useState(false);
     const [isExpandedJS, setIsExpandedJS] = useState(false);
 
-    // Max input-wrapper heights derived from total component budget
+    // Max input-wrapper height derived from total component budget
     const maxAutoGrowHeight = maxExpandedHeight - CHROME_BASE;
-    const maxGestureInputHeight =
-      maxExpandedHeight - CHROME_BASE - CHROME_DRAG_HANDLE;
 
     const inputHeight = useSharedValue(MIN_HEIGHT); // collapsed content height (managed by handleContentSizeChange)
-    const expandHeight = useSharedValue(0); // expand animation height (isolated from inputHeight)
+    const containerHeight = useSharedValue(0); // 0 = auto (collapsed); > 0 = explicit height
     const isExpanded = useSharedValue(0); // 0 = collapsed, 1 = expanded
-    const dragTranslateY = useSharedValue(0);
 
     // Append emoji from picker
     useEffect(() => {
@@ -128,47 +129,84 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       [],
     );
 
+    // Keyboard animation — needed in gesture worklets for padding calculation
+    const { progress: kbProgress } = useReanimatedKeyboardAnimation();
+    const fullPadding = Math.max(insets.bottom, 8) + 8;
+    const kbPadding = 8;
+
     const panGesture = Gesture.Pan()
       .activeOffsetY([-15, 15])
       .onUpdate((event) => {
         "worklet";
         const ty = event.translationY;
+        const currentPadBottom = interpolate(
+          kbProgress.value,
+          [0, 1],
+          [fullPadding, kbPadding],
+        );
+
         if (isExpanded.value < 0.5) {
-          // Collapsed: full tracking upward, rubber-band downward
-          dragTranslateY.value = ty < 0 ? ty : ty * 0.2;
+          // Collapsed: swiping up grows height, swiping down rubber-bands
+          const collapsedH =
+            CHROME_NO_BOTTOM + inputHeight.value + currentPadBottom;
+          if (ty < 0) {
+            containerHeight.value = collapsedH + Math.abs(ty);
+          } else {
+            containerHeight.value = Math.max(0, collapsedH - ty * 0.2);
+          }
         } else {
-          // Expanded: full tracking downward, rubber-band upward
-          dragTranslateY.value = ty > 0 ? ty : ty * 0.2;
+          // Expanded: swiping down shrinks, swiping up rubber-bands
+          const minH = CHROME_NO_BOTTOM + MIN_HEIGHT + currentPadBottom;
+          if (ty > 0) {
+            containerHeight.value = Math.max(minH, maxExpandedHeight - ty);
+          } else {
+            containerHeight.value = maxExpandedHeight + Math.abs(ty) * 0.2;
+          }
         }
       })
       .onEnd((event) => {
         "worklet";
         const swipedUp = event.translationY < -SWIPE_THRESHOLD;
         const swipedDown = event.translationY > SWIPE_THRESHOLD;
+        const currentPadBottom = interpolate(
+          kbProgress.value,
+          [0, 1],
+          [fullPadding, kbPadding],
+        );
 
         if (swipedUp && isExpanded.value < 0.5) {
-          // Capture current visual height (content + drag extra)
-          const currentH = inputHeight.value + Math.max(0, -event.translationY);
-          expandHeight.value = currentH;
-
+          // Expand
           isExpanded.value = 1;
-          dragTranslateY.value = withSpring(0, SPRING_CONFIG);
-
-          // Animate expand height from current visual size to target (minus drag-handle chrome)
-          expandHeight.value = withSpring(maxGestureInputHeight, EXPAND_SPRING);
-
+          containerHeight.value = withSpring(maxExpandedHeight, EXPAND_SPRING);
           runOnJS(setExpandedTrue)();
           runOnJS(fireHapticMedium)();
         } else if (swipedDown && isExpanded.value > 0.5) {
+          // Collapse — hide drag handle immediately, spring height down
           isExpanded.value = 0;
           runOnJS(setExpandedFalse)();
+          const collapsedH =
+            CHROME_NO_BOTTOM + inputHeight.value + currentPadBottom;
+          containerHeight.value = withSpring(
+            collapsedH,
+            SPRING_CONFIG,
+            (finished) => {
+              if (finished) {
+                containerHeight.value = 0;
+              }
+            },
+          );
           runOnJS(fireHapticLight)();
+        } else {
+          // Snap back to current state
+          if (isExpanded.value > 0.5) {
+            containerHeight.value = withSpring(
+              maxExpandedHeight,
+              SPRING_CONFIG,
+            );
+          } else {
+            containerHeight.value = withSpring(0, SPRING_CONFIG);
+          }
         }
-        dragTranslateY.value = withSpring(0, SPRING_CONFIG);
-      })
-      .onFinalize(() => {
-        "worklet";
-        dragTranslateY.value = withSpring(0, SPRING_CONFIG);
       });
 
     const collapse = useCallback(() => {
@@ -176,10 +214,28 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
         isExpanded.value = 0;
         setIsExpandedJS(false);
         onExpandedChange?.(false);
+        const collapsedH =
+          CHROME_NO_BOTTOM + inputHeight.value + fullPadding;
+        containerHeight.value = withSpring(
+          collapsedH,
+          SPRING_CONFIG,
+          (finished) => {
+            if (finished) {
+              containerHeight.value = 0;
+            }
+          },
+        );
         Keyboard.dismiss();
         hapticImpact(ImpactFeedbackStyle.Light);
       }
-    }, [isExpandedJS, isExpanded, onExpandedChange]);
+    }, [
+      isExpandedJS,
+      isExpanded,
+      containerHeight,
+      inputHeight,
+      fullPadding,
+      onExpandedChange,
+    ]);
 
     useImperativeHandle(
       ref,
@@ -197,13 +253,22 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       setText("");
       setScrollEnabled(false);
       inputHeight.value = MIN_HEIGHT;
-      // Collapse if expanded
+      // Always reset container height (safety: ensures no stuck gesture state)
+      containerHeight.value = 0;
       if (isExpandedJS) {
         isExpanded.value = 0;
         setIsExpandedJS(false);
         onExpandedChange?.(false);
       }
-    }, [text, onSend, inputHeight, isExpanded, isExpandedJS, onExpandedChange]);
+    }, [
+      text,
+      onSend,
+      inputHeight,
+      containerHeight,
+      isExpanded,
+      isExpandedJS,
+      onExpandedChange,
+    ]);
 
     const handleAttachPress = useCallback(() => {
       hapticSelection();
@@ -215,47 +280,52 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       onEmojiPress?.();
     }, [onEmojiPress]);
 
-    // Input wrapper style — React state for collapsed auto-grow, flex for expanded.
-    // Uses a regular View (not Animated.View) to bypass Reanimated shared-value
-    // reactivity issues where JS-thread updates don't trigger worklet re-runs.
+    // Input wrapper: in collapsed mode, auto-sizes from TextInput content
+    // (minHeight/maxHeight constrain growth). In expanded mode, flex:1 fills
+    // the chatbar's remaining space.
     const inputWrapperStyle = isExpandedJS
       ? ({ flex: 1 } as const)
       : ({ minHeight: MIN_HEIGHT, maxHeight: maxAutoGrowHeight } as const);
 
-    // Container gets a fixed height when expanded so the chatbar doesn't overflow.
-    // Inner elements use flex: 1 to fill it; flexShrink: 1 on the input wrapper
-    // ensures the actionsRow always stays visible.
-    // height gives the container a definite size so inner flex:1 children resolve.
-    // flexShrink:1 lets the container shrink when the keyboard reduces available space,
-    // preventing the actionsRow from being pushed below the keyboard.
-    const expandedContainerStyle = isExpandedJS
-      ? ({ height: maxExpandedHeight, flexShrink: 1 } as const)
-      : undefined;
-    const expandedInnerFlex = isExpandedJS ? ({ flex: 1 } as const) : undefined;
+    // IMPORTANT: Reanimated animated styles have a "sticky property" bug where
+    // properties returned in one frame (e.g. flex:1, height:X) persist in the
+    // native view even after the animated style stops returning them (returns {}).
+    // To avoid this, ALL animated styles below ALWAYS return the same set of
+    // properties with different values — properties are never added or removed.
 
-    // When dragging down (positive), add marginTop to shrink the container from top
-    const animatedDragStyle = useAnimatedStyle(() => ({
-      marginTop: Math.max(0, dragTranslateY.value),
-    }));
-
-    const { progress: kbProgress } = useReanimatedKeyboardAnimation();
-    const fullPadding = Math.max(insets.bottom, 8) + 8;
-    const kbPadding = 8; // minimal padding when keyboard is up
-
-    const animatedContainerStyle = useAnimatedStyle(() => ({
-      paddingBottom: interpolate(
+    // Container height: always explicit. Tracks inputHeight + keyboard padding
+    // in collapsed mode, containerHeight in gesture/expanded mode.
+    const animatedContainerStyle = useAnimatedStyle(() => {
+      const padBottom = interpolate(
         kbProgress.value,
         [0, 1],
         [fullPadding, kbPadding],
-      ),
+      );
+      if (containerHeight.value <= 0) {
+        return {
+          height: CHROME_NO_BOTTOM + inputHeight.value + padBottom,
+          paddingBottom: padBottom,
+        };
+      }
+      return {
+        height: containerHeight.value,
+        paddingBottom: padBottom,
+      };
+    });
+
+    // Chatbar flex: auto-size from children in collapsed mode (Yoga handles
+    // auto-grow as TextInput content grows), flex-fill in gesture/expanded mode.
+    const chatbarAnimatedStyle = useAnimatedStyle(() => ({
+      flexGrow: containerHeight.value > 0 ? 1 : 0,
+      flexShrink: containerHeight.value > 0 ? 1 : 0,
     }));
 
     return (
       <Animated.View
-        style={[styles.container, animatedContainerStyle, expandedContainerStyle, animatedDragStyle]}
+        style={[styles.container, animatedContainerStyle]}
       >
         <GestureDetector gesture={panGesture}>
-          <Animated.View style={[styles.chatbar, expandedInnerFlex]}>
+          <Animated.View style={[styles.chatbar, chatbarAnimatedStyle]}>
             {/* Drag handle (visible when expanded) */}
             {isExpandedJS && (
               <View style={styles.dragHandle}>
@@ -390,23 +460,28 @@ function SendButton({ hasText, onSend }: SendButtonProps) {
 
 const styles = StyleSheet.create({
   container: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: "transparent",
     paddingHorizontal: 16,
     paddingTop: 8,
   },
   chatbar: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "rgba(255,255,255,0.9)",
     borderRadius: 24,
-    paddingTop: 24,
+    borderWidth: 1,
+    borderColor: "#FFFFFF",
+    paddingTop: 16,
     paddingHorizontal: 12,
-    paddingBottom: 8,
+    paddingBottom: 12,
     gap: 12,
-    overflow: "hidden" as const,
-    shadowColor: "#002C2A",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 4,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12.5,
+    elevation: 8,
   },
   dragHandle: {
     alignItems: "center",
