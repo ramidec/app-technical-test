@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingTop: 8,
     paddingRight: 16,
-    paddingBottom: 200,
+    paddingBottom: 160,
     paddingLeft: 16,
   },
   paginationLoader: {

@@ -320,6 +320,14 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       flexShrink: containerHeight.value > 0 ? 1 : 0,
     }));
 
+    // InputWrapper flex: during gesture/expanded, absorbs extra space so
+    // actionsRow stays pinned at the bottom. In collapsed mode, no flex
+    // so it auto-sizes from TextInput content (auto-expand).
+    const inputWrapperAnimatedStyle = useAnimatedStyle(() => ({
+      flexGrow: containerHeight.value > 0 ? 1 : 0,
+      flexShrink: containerHeight.value > 0 ? 1 : 0,
+    }));
+
     return (
       <Animated.View
         style={[styles.container, animatedContainerStyle]}
@@ -334,7 +342,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             )}
 
             {/* Text area */}
-            <View style={inputWrapperStyle}>
+            <Animated.View style={[inputWrapperStyle, inputWrapperAnimatedStyle]}>
               <TextInput
                 ref={textInputRef}
                 style={[styles.input, isExpandedJS && { flex: 1 }]}
@@ -346,7 +354,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
                 scrollEnabled={scrollEnabled || isExpandedJS}
                 onContentSizeChange={handleContentSizeChange}
               />
-            </View>
+            </Animated.View>
 
             {/* Actions row */}
             <View style={styles.actionsRow}>
