@@ -82,6 +82,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     const [text, setText] = useState("");
     const [scrollEnabled, setScrollEnabled] = useState(false);
     const [isExpandedJS, setIsExpandedJS] = useState(false);
+    const [inputKey, setInputKey] = useState(0);
 
     // Max input-wrapper height derived from total component budget
     const maxAutoGrowHeight = maxExpandedHeight - CHROME_BASE;
@@ -89,6 +90,14 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     const inputHeight = useSharedValue(MIN_HEIGHT); // collapsed content height (managed by handleContentSizeChange)
     const containerHeight = useSharedValue(0); // 0 = auto (collapsed); > 0 = explicit height
     const isExpanded = useSharedValue(0); // 0 = collapsed, 1 = expanded
+
+    // After key-remount (send clears via new key), refocus the fresh
+    // TextInput so the keyboard stays visible. Skip the initial mount (0).
+    useEffect(() => {
+      if (inputKey > 0) {
+        textInputRef.current?.focus();
+      }
+    }, [inputKey]);
 
     // Append emoji from picker
     useEffect(() => {
@@ -214,8 +223,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
         isExpanded.value = 0;
         setIsExpandedJS(false);
         onExpandedChange?.(false);
-        const collapsedH =
-          CHROME_NO_BOTTOM + inputHeight.value + fullPadding;
+        const collapsedH = CHROME_NO_BOTTOM + inputHeight.value + fullPadding;
         containerHeight.value = withSpring(
           collapsedH,
           SPRING_CONFIG,
@@ -250,7 +258,12 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       if (!text.trim()) return;
       hapticImpact(ImpactFeedbackStyle.Light);
       onSend(text.trim());
+      // Increment key to force-remount the TextInput. This is the only
+      // reliable way to clear on iOS when autocorrect has active "marked
+      // text" — setText("") and clear() are both blocked by the native
+      // composing session. A new key unmounts the old native view entirely.
       setText("");
+      setInputKey((k) => k + 1);
       setScrollEnabled(false);
       inputHeight.value = MIN_HEIGHT;
       // Always reset container height (safety: ensures no stuck gesture state)
@@ -329,9 +342,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     }));
 
     return (
-      <Animated.View
-        style={[styles.container, animatedContainerStyle]}
-      >
+      <Animated.View style={[styles.container, animatedContainerStyle]}>
         <GestureDetector gesture={panGesture}>
           <Animated.View style={[styles.chatbar, chatbarAnimatedStyle]}>
             {/* Drag handle (visible when expanded) */}
@@ -342,8 +353,13 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
             )}
 
             {/* Text area */}
-            <Animated.View style={[inputWrapperStyle, inputWrapperAnimatedStyle]}>
+            <Animated.View
+              style={[inputWrapperStyle, inputWrapperAnimatedStyle]}
+            >
               <TextInput
+                autoCorrect={false}
+                autoComplete="off"
+                key={inputKey}
                 ref={textInputRef}
                 style={[styles.input, isExpandedJS && { flex: 1 }]}
                 value={text}
