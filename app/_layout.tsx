@@ -1,4 +1,4 @@
-import '../theme/unistyles';
+import "../theme/unistyles";
 import { useEffect, useState } from "react";
 import { Stack, useRouter } from "expo-router";
 import { View, Text, Pressable, Alert } from "react-native";
@@ -7,7 +7,9 @@ import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
 import { CONTACT_NAME, CONTACT_ORG } from "@/constants/channels";
 // Lazy — expo-audio uses NitroModules, unavailable in Expo Go
-let setAudioModeAsync: ((opts: { playsInSilentMode: boolean }) => Promise<void>) | null = null;
+let setAudioModeAsync:
+  | ((opts: { playsInSilentMode: boolean }) => Promise<void>)
+  | null = null;
 try {
   setAudioModeAsync = require("expo-audio").setAudioModeAsync;
 } catch {
@@ -28,8 +30,12 @@ function ChatHeaderTitle() {
       </View>
       {/* Name + subtitle */}
       <View style={styles.textColumn}>
-        <Text style={styles.name} numberOfLines={1}>{CONTACT_NAME}</Text>
-        <Text style={styles.subtitle} numberOfLines={1}>{CONTACT_ORG}</Text>
+        <Text style={styles.name} numberOfLines={1}>
+          {CONTACT_NAME}
+        </Text>
+        <Text style={styles.subtitle} numberOfLines={1}>
+          {CONTACT_ORG}
+        </Text>
       </View>
     </View>
   );
@@ -39,8 +45,17 @@ function ChatHeaderLeft() {
   const router = useRouter();
   const { theme } = useAppTheme();
   return (
-    <Pressable hitSlop={8} onPress={() => router.back()} accessibilityLabel="Go back" accessibilityRole="button">
-      <Ionicons name="chevron-back" size={24} color={theme.colors.textPrimary} />
+    <Pressable
+      hitSlop={8}
+      onPress={() => router.back()}
+      accessibilityLabel="Go back"
+      accessibilityRole="button"
+    >
+      <Ionicons
+        name="chevron-back"
+        size={24}
+        color={theme.colors.textPrimary}
+      />
     </Pressable>
   );
 }
@@ -59,11 +74,14 @@ function ChatHeaderRight() {
 
 export default function RootLayout() {
   const { theme } = useAppTheme();
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: { retry: 1, staleTime: 30_000 },
-    },
-  }));
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: { retry: 1, staleTime: 30_000 },
+        },
+      }),
+  );
 
   // Enable audio playback on iOS silent mode
   useEffect(() => {
@@ -87,10 +105,7 @@ export default function RootLayout() {
         <KeyboardProvider>
           <BottomSheetModalProvider>
             <Stack>
-              <Stack.Screen
-                name="index"
-                options={{ headerShown: false }}
-              />
+              <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen
                 name="chat"
                 options={{
@@ -114,8 +129,8 @@ const styles = StyleSheet.create((theme) => ({
     flex: 1,
   },
   titlePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: theme.colors.background,
     borderRadius: 36,
     paddingTop: 4,
@@ -130,28 +145,28 @@ const styles = StyleSheet.create((theme) => ({
     height: 32,
     borderRadius: 16,
     backgroundColor: theme.colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   avatarText: {
     color: theme.colors.textSecondary,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   textColumn: {
-    flexDirection: 'column',
+    flexDirection: "column",
     gap: 2,
   },
   name: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: theme.colors.textPrimary,
-    textAlign: 'left',
+    textAlign: "left",
   },
   subtitle: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
     color: theme.colors.textSecondary,
-    textAlign: 'left',
+    textAlign: "left",
   },
 }));
