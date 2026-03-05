@@ -5,6 +5,7 @@ import { View, Text, Pressable, Alert } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
+import { CONTACT_NAME, CONTACT_ORG } from "@/constants/channels";
 // Lazy — expo-audio uses NitroModules, unavailable in Expo Go
 let setAudioModeAsync: ((opts: { playsInSilentMode: boolean }) => Promise<void>) | null = null;
 try {
@@ -26,8 +27,8 @@ function ChatHeaderTitle() {
       </View>
       {/* Name + subtitle */}
       <View style={styles.textColumn}>
-        <Text style={styles.name} numberOfLines={1}>Alexandra Velcaz</Text>
-        <Text style={styles.subtitle} numberOfLines={1}>NextGen Dynamics</Text>
+        <Text style={styles.name} numberOfLines={1}>{CONTACT_NAME}</Text>
+        <Text style={styles.subtitle} numberOfLines={1}>{CONTACT_ORG}</Text>
       </View>
     </View>
   );
@@ -48,7 +49,7 @@ function ChatHeaderRight() {
   return (
     <Pressable
       hitSlop={8}
-      onPress={() => Alert.alert("Calling...", "Alexandra Velcaz")}
+      onPress={() => Alert.alert("Calling...", CONTACT_NAME)}
     >
       <Ionicons name="call" size={24} color={theme.colors.textPrimary} />
     </Pressable>

@@ -33,6 +33,7 @@ import { useReanimatedKeyboardAnimation } from "react-native-keyboard-controller
 import { hapticImpact, hapticSelection } from "@/utils/haptics";
 import { ImpactFeedbackStyle } from "expo-haptics";
 import GradientAIIcon, { GradientAIIconRef } from "@/components/GradientAIIcon";
+import { CONTACT_FIRST_NAME } from "@/constants/channels";
 
 const MIN_HEIGHT = 19;
 const SPRING_CONFIG = { damping: 20, stiffness: 200, mass: 0.5 } as const;
@@ -72,7 +73,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       pendingEmoji,
       onPendingEmojiConsumed,
       onExpandedChange,
-      placeholder = "Text Alexandra",
+      placeholder = `Text ${CONTACT_FIRST_NAME}`,
       maxExpandedHeight = 400,
     },
     ref,
