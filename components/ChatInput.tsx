@@ -468,10 +468,6 @@ function SendButton({ hasText, onSend }: SendButtonProps) {
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: "transparent",
     paddingHorizontal: 16,
     paddingTop: 8,

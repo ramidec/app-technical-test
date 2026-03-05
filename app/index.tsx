@@ -74,6 +74,14 @@ export default function ChatScreen() {
           setTimeout(scroll, 100);
         } else {
           setShowSkeleton(false);
+          // After skeleton removal, maintainVisibleContentPosition switches on
+          // which can shift scroll position. Do final scrolls after layout settles.
+          setTimeout(() => {
+            flashListRef.current?.scrollToEnd({ animated: false });
+          }, 100);
+          setTimeout(() => {
+            flashListRef.current?.scrollToEnd({ animated: false });
+          }, 300);
         }
       };
       scroll();
@@ -84,13 +92,27 @@ export default function ChatScreen() {
     flashListRef.current?.scrollToEnd({ animated: false });
   }, []);
 
+  const scrollToEndDelayed = useCallback(() => {
+    setTimeout(() => {
+      flashListRef.current?.scrollToEnd({ animated: false });
+    }, 50);
+  }, []);
+
   // Scroll list to bottom in sync with keyboard — animated:false so it
-  // tracks the keyboard frame-by-frame instead of triggering a separate animation
+  // tracks the keyboard frame-by-frame instead of triggering a separate animation.
+  // onEnd does a final precise scroll after layout settles to fix any drift
+  // from runOnJS latency during the animation.
   useKeyboardHandler({
     onMove: (e) => {
       "worklet";
       if (e.height > 0) {
         runOnJS(scrollToEndInstant)();
+      }
+    },
+    onEnd: (e) => {
+      "worklet";
+      if (e.height > 0) {
+        runOnJS(scrollToEndDelayed)();
       }
     },
   });
@@ -147,37 +169,39 @@ export default function ChatScreen() {
           style={styles.listWrapper}
           onLayout={(e) => setAvailableHeight(e.nativeEvent.layout.height)}
         >
-          <FlashList<MessageWithGrouping>
-            ref={flashListRef}
-            data={groupedMessages}
-            renderItem={({ item }) => (
-              <MessageItem message={item} isLastInGroup={item.isLastInGroup} />
-            )}
-            keyExtractor={(item) => item.id}
-            estimatedItemSize={120}
-            initialScrollIndex={
-              groupedMessages.length > 0
-                ? groupedMessages.length - 1
-                : undefined
-            }
-            style={styles.list}
-            contentContainerStyle={styles.listContent}
-            maintainVisibleContentPosition={
-              showSkeleton ? undefined : { autoscrollToTopThreshold: 10 }
-            }
-            keyboardDismissMode="on-drag"
-            keyboardShouldPersistTaps="handled"
-            onEndReached={handleEndReached}
-            onEndReachedThreshold={0.3}
-            ListHeaderComponent={
-              isFetchingNextPage ? (
-                <View style={styles.paginationLoader}>
-                  <ActivityIndicator size="small" color="#8E8E93" />
-                </View>
-              ) : null
-            }
-          />
-          <BottomFade />
+          <View style={styles.listArea}>
+            <FlashList<MessageWithGrouping>
+              ref={flashListRef}
+              data={groupedMessages}
+              renderItem={({ item }) => (
+                <MessageItem message={item} isLastInGroup={item.isLastInGroup} />
+              )}
+              keyExtractor={(item) => item.id}
+              estimatedItemSize={120}
+              initialScrollIndex={
+                groupedMessages.length > 0
+                  ? groupedMessages.length - 1
+                  : undefined
+              }
+              style={styles.list}
+              contentContainerStyle={styles.listContent}
+              maintainVisibleContentPosition={
+                showSkeleton ? undefined : { autoscrollToTopThreshold: 10 }
+              }
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled"
+              onEndReached={handleEndReached}
+              onEndReachedThreshold={0.3}
+              ListHeaderComponent={
+                isFetchingNextPage ? (
+                  <View style={styles.paginationLoader}>
+                    <ActivityIndicator size="small" color="#8E8E93" />
+                  </View>
+                ) : null
+              }
+            />
+            <BottomFade />
+          </View>
           {isInputExpanded && (
             <Pressable
               style={StyleSheet.absoluteFill}
@@ -224,13 +248,16 @@ const styles = StyleSheet.create({
   listWrapper: {
     flex: 1,
   },
+  listArea: {
+    flex: 1,
+  },
   list: {
     flex: 1,
   },
   listContent: {
     paddingTop: 8,
     paddingRight: 16,
-    paddingBottom: 160,
+    paddingBottom: 16,
     paddingLeft: 16,
   },
   paginationLoader: {
