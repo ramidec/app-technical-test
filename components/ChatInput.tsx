@@ -51,6 +51,7 @@ const CHROME_NO_BOTTOM = 86;
 export interface ChatInputRef {
   collapse: () => void;
   focus: () => void;
+  setText: (text: string) => void;
 }
 
 interface ChatInputProps {
@@ -59,9 +60,11 @@ interface ChatInputProps {
   onEmojiPress?: () => void;
   pendingEmoji?: string;
   onPendingEmojiConsumed?: () => void;
+  onAIPress?: (currentText: string) => void;
   onExpandedChange?: (expanded: boolean) => void;
   placeholder?: string;
   maxExpandedHeight?: number;
+  showAIButton?: boolean;
 }
 
 const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
@@ -70,11 +73,13 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       onSend,
       onAttachPress,
       onEmojiPress,
+      onAIPress,
       pendingEmoji,
       onPendingEmojiConsumed,
       onExpandedChange,
       placeholder = `Text ${CONTACT_FIRST_NAME}`,
       maxExpandedHeight = 400,
+      showAIButton = true,
     },
     ref,
   ) => {
@@ -246,8 +251,13 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
       () => ({
         collapse,
         focus: () => textInputRef.current?.focus(),
+        setText: (value: string) => {
+          setText(value);
+          // Reset input height for new content
+          inputHeight.value = MIN_HEIGHT;
+        },
       }),
-      [collapse],
+      [collapse, inputHeight],
     );
 
     const handleSend = useCallback(() => {
@@ -391,7 +401,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
                   onPress={handleEmojiPress}
                   accessibilityLabel="Open emoji picker"
                 />
-                <AIButton />
+                {showAIButton && <AIButton onPress={onAIPress} text={text} />}
               </View>
               <SendButton hasText={hasText} onSend={handleSend} />
             </View>
@@ -430,15 +440,22 @@ function ChatBarButton({ icon, onPress, accessibilityLabel }: ChatBarButtonProps
   );
 }
 
-// --- AI Button (gradient sparkle icon, no-op for now) ---
+// --- AI Button (gradient sparkle icon) ---
 
-function AIButton() {
+function AIButton({
+  onPress,
+  text,
+}: {
+  onPress?: (currentText: string) => void;
+  text: string;
+}) {
   const iconRef = useRef<GradientAIIconRef>(null);
 
   const handlePress = useCallback(() => {
     hapticSelection();
     iconRef.current?.shimmer();
-  }, []);
+    onPress?.(text);
+  }, [onPress, text]);
 
   return (
     <Pressable

@@ -123,3 +123,35 @@ If you want to demonstrate your ideas, you can implement a simple prototype of o
 6. Send us the URL to your forked repository with clear instructions for running the app
 
 Good luck! We're excited to see your solution and thought process.
+
+---
+
+## AI Message Formatter (PoC)
+
+The AI button in the chat toolbar connects to **Google Gemini 2.5 Flash** to reformat informal messages into polished, Slack-style chat messages. Type a draft (or just an idea), press the ✨ AI sparkle icon, optionally set a tone/intent, and get a well-written message back.
+
+### Setup
+
+1. Go to [https://aistudio.google.com](https://aistudio.google.com)
+2. Log in with your Google account
+3. Navigate to **"Get API key"** in the left sidebar
+4. Click **"Create API key"** and link it to a Google Cloud project (the free tier is fine — no billing required)
+5. Copy your new API key
+6. In the project root, copy the env template and paste your key:
+   ```bash
+   cp .env.example .env
+   ```
+7. Open `.env` and replace the placeholder:
+   ```
+   EXPO_PUBLIC_GEMINI_API_KEY=your_actual_key_here
+   ```
+8. Restart Metro with a clean cache:
+   ```bash
+   npx expo start --clear
+   ```
+
+> **Free tier limits:** 15 requests/min, 1,500 requests/day — more than enough for testing.
+
+### Debug Dashboard
+
+The app's home screen includes a **Debug Dashboard** with feature toggles. The **AI Formatter** toggle lets you show or hide the AI button in the chat toolbar. It also displays real-time connection status to the Gemini API (🟢 Online / 🔴 Offline).

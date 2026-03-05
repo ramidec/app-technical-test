@@ -15,6 +15,7 @@ import {
   useKeyboardHandler,
 } from "react-native-keyboard-controller";
 import BottomSheet from "@gorhom/bottom-sheet";
+import type { AppSheetRef } from "@/components/AppSheet";
 import MessageItem from "@/components/MessageItem";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import {
@@ -24,12 +25,13 @@ import {
 import ChatInput, { ChatInputRef } from "@/components/ChatInput";
 import AttachmentSheet from "@/components/AttachmentSheet";
 import EmojiSheet from "@/components/EmojiSheet";
+import AISheet from "@/components/AISheet";
 import SkeletonMessages from "@/components/SkeletonMessages";
 import BottomFade from "@/components/BottomFade";
 import { useMessages } from "@/hooks/useMessages";
 import { useSendMessage } from "@/hooks/useSendMessage";
 import { useAppTheme } from "@/hooks/useAppTheme";
-import { getSkeletonEnabled } from "@/services/debugSettings";
+import { getSkeletonEnabled, getAIEnabled } from "@/services/debugSettings";
 
 export default function ChatScreen() {
   const insets = useSafeAreaInsets();
@@ -38,7 +40,9 @@ export default function ChatScreen() {
   const chatInputRef = useRef<ChatInputRef>(null);
   const attachmentSheetRef = useRef<BottomSheet>(null);
   const emojiSheetRef = useRef<BottomSheet>(null);
+  const aiSheetRef = useRef<AppSheetRef>(null);
   const [pendingEmoji, setPendingEmoji] = useState("");
+  const [aiMessage, setAIMessage] = useState("");
   const [availableHeight, setAvailableHeight] = useState(0);
   const [isInputExpanded, setIsInputExpanded] = useState(false);
 
@@ -55,6 +59,7 @@ export default function ChatScreen() {
   // Skeleton: show for a minimum duration so the user sees it
   // Respects debug flag — if skeleton disabled, skip entirely
   const skeletonEnabled = getSkeletonEnabled();
+  const aiEnabled = getAIEnabled();
   const [minTimeElapsed, setMinTimeElapsed] = useState(!skeletonEnabled);
   const [showSkeleton, setShowSkeleton] = useState(skeletonEnabled);
   useEffect(() => {
@@ -161,6 +166,22 @@ export default function ChatScreen() {
     }, 100);
   }, []);
 
+  const handleAIPress = useCallback((currentText: string) => {
+    Keyboard.dismiss();
+    setAIMessage(currentText);
+    // Small delay to let keyboard dismiss before presenting the modal
+    setTimeout(() => {
+      aiSheetRef.current?.open();
+    }, 100);
+  }, []);
+
+  const handleAIConfirm = useCallback((formattedText: string) => {
+    chatInputRef.current?.setText(formattedText);
+    setTimeout(() => {
+      chatInputRef.current?.focus();
+    }, 300);
+  }, []);
+
   return (
     <ErrorBoundary>
       <View style={styles.root}>
@@ -215,6 +236,8 @@ export default function ChatScreen() {
               onSend={handleSend}
               onAttachPress={handleAttachPress}
               onEmojiPress={handleEmojiPress}
+              onAIPress={aiEnabled ? handleAIPress : undefined}
+              showAIButton={aiEnabled}
               pendingEmoji={pendingEmoji}
               onPendingEmojiConsumed={() => setPendingEmoji("")}
               onExpandedChange={setIsInputExpanded}
@@ -227,6 +250,7 @@ export default function ChatScreen() {
 
         <AttachmentSheet ref={attachmentSheetRef} />
         <EmojiSheet ref={emojiSheetRef} onEmojiSelected={handleEmojiSelected} />
+        <AISheet ref={aiSheetRef} message={aiMessage} onConfirm={handleAIConfirm} />
       </View>
     </ErrorBoundary>
   );

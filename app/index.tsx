@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Platform,
   ScrollView,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
 import { StyleSheet } from 'react-native-unistyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,8 +19,11 @@ import {
   setSkeletonEnabled,
   getSaveMessagesEnabled,
   setSaveMessagesEnabled,
+  getAIEnabled,
+  setAIEnabled,
 } from '@/services/debugSettings';
 import { clearCachedMessages } from '@/services/storage';
+import { checkConnection } from '@/services/ai';
 
 const MONO = Platform.select({ ios: 'Menlo', default: 'monospace' });
 
@@ -28,6 +32,8 @@ const AMBER = '#F59E0B';
 const AMBER_MUTED = 'rgba(245, 158, 11, 0.12)';
 const GREEN = '#10B981';
 const RED = '#EF4444';
+const PURPLE = '#8B5CF6';
+const PURPLE_MUTED = 'rgba(139, 92, 246, 0.12)';
 
 // ─── Toggle Card ─────────────────────────────────────────────────────────────
 
@@ -95,6 +101,96 @@ function ToggleCard({ icon, title, description, detail, value, onToggle }: Toggl
   );
 }
 
+// ─── AI Toggle Card (with connection status) ────────────────────────────────
+
+type ConnectionStatus = 'checking' | 'online' | 'offline';
+
+interface AIToggleCardProps {
+  value: boolean;
+  onToggle: (v: boolean) => void;
+}
+
+function AIToggleCard({ value, onToggle }: AIToggleCardProps) {
+  const { theme, colorScheme } = useAppTheme();
+  const isDark = colorScheme === 'dark';
+  const [connStatus, setConnStatus] = useState<ConnectionStatus>('checking');
+
+  useEffect(() => {
+    let cancelled = false;
+    setConnStatus('checking');
+    checkConnection().then((ok) => {
+      if (!cancelled) setConnStatus(ok ? 'online' : 'offline');
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  const statusColor =
+    connStatus === 'online' ? GREEN : connStatus === 'offline' ? RED : theme.colors.textSecondary;
+  const statusLabel =
+    connStatus === 'online' ? 'ONLINE' : connStatus === 'offline' ? 'OFFLINE' : 'CHECKING';
+
+  return (
+    <View
+      style={[
+        styles.card,
+        { borderLeftColor: value ? PURPLE : (isDark ? '#3A3A3C' : '#D1D5DB') },
+      ]}
+    >
+      <View style={styles.cardHeader}>
+        <View style={[styles.iconCircle, { backgroundColor: PURPLE_MUTED }]}>
+          <Ionicons name="sparkles" size={18} color={PURPLE} />
+        </View>
+        <View style={styles.cardTitleRow}>
+          <Text style={styles.cardTitle}>AI Formatter</Text>
+          <View style={styles.statusRow}>
+            <View
+              style={[
+                styles.statusDot,
+                { backgroundColor: value ? GREEN : (isDark ? '#4B5563' : '#9CA3AF') },
+              ]}
+            />
+            <Text
+              style={[
+                styles.statusText,
+                { color: value ? GREEN : theme.colors.textSecondary },
+              ]}
+            >
+              {value ? 'ACTIVE' : 'OFF'}
+            </Text>
+          </View>
+        </View>
+        <Switch
+          value={value}
+          onValueChange={onToggle}
+          trackColor={{ false: isDark ? '#3A3A3C' : '#D1D5DB', true: PURPLE }}
+          thumbColor="#FFFFFF"
+          ios_backgroundColor={isDark ? '#3A3A3C' : '#D1D5DB'}
+        />
+      </View>
+      <Text style={styles.cardDescription}>
+        Show the AI sparkle button in the chat toolbar. Uses Google Gemini to reformat messages with a chosen tone.
+      </Text>
+
+      {/* Connection status row */}
+      <View style={styles.connRow}>
+        <View style={styles.connLeft}>
+          <Text style={[styles.connLabel, { color: theme.colors.textSecondary }]}>
+            Gemini API
+          </Text>
+          {connStatus === 'checking' ? (
+            <ActivityIndicator size={10} color={theme.colors.textSecondary} />
+          ) : (
+            <View style={[styles.connDot, { backgroundColor: statusColor }]} />
+          )}
+          <Text style={[styles.connStatus, { color: statusColor }]}>
+            {statusLabel}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
 // ─── Dashboard Screen ────────────────────────────────────────────────────────
 
 export default function DashboardScreen() {
@@ -105,6 +201,7 @@ export default function DashboardScreen() {
 
   const [skeletonOn, setSkeletonOn] = useState(() => getSkeletonEnabled());
   const [saveOn, setSaveOn] = useState(() => getSaveMessagesEnabled());
+  const [aiOn, setAiOn] = useState(() => getAIEnabled());
 
   const handleSkeletonToggle = useCallback((value: boolean) => {
     setSkeletonOn(value);
@@ -117,6 +214,11 @@ export default function DashboardScreen() {
     if (!value) {
       clearCachedMessages();
     }
+  }, []);
+
+  const handleAIToggle = useCallback((value: boolean) => {
+    setAiOn(value);
+    setAIEnabled(value);
   }, []);
 
   return (
@@ -171,6 +273,8 @@ export default function DashboardScreen() {
           value={saveOn}
           onToggle={handleSaveToggle}
         />
+
+        <AIToggleCard value={aiOn} onToggle={handleAIToggle} />
 
         {/* ── System info ── */}
         <Text style={styles.sectionLabel}>SYSTEM INFO</Text>
@@ -361,6 +465,37 @@ const styles = StyleSheet.create((theme) => ({
     fontFamily: MONO,
   },
 
+  // Connection status row (AI card)
+  connRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.background,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  connLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  connLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+    fontFamily: MONO,
+  },
+  connDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+  },
+  connStatus: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    fontFamily: MONO,
+  },
   // Info card
   infoCard: {
     backgroundColor: theme.colors.surface,

@@ -16,6 +16,7 @@ try {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 function ChatHeaderTitle() {
   const { theme } = useAppTheme();
@@ -84,22 +85,24 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.root}>
       <QueryClientProvider client={queryClient}>
         <KeyboardProvider>
-          <Stack>
-            <Stack.Screen
-              name="index"
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="chat"
-              options={{
-                headerLeft: () => <ChatHeaderLeft />,
-                headerTitle: () => <ChatHeaderTitle />,
-                headerRight: () => <ChatHeaderRight />,
-                headerStyle,
-                headerShadowVisible: false,
-              }}
-            />
-          </Stack>
+          <BottomSheetModalProvider>
+            <Stack>
+              <Stack.Screen
+                name="index"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="chat"
+                options={{
+                  headerLeft: () => <ChatHeaderLeft />,
+                  headerTitle: () => <ChatHeaderTitle />,
+                  headerRight: () => <ChatHeaderRight />,
+                  headerStyle,
+                  headerShadowVisible: false,
+                }}
+              />
+            </Stack>
+          </BottomSheetModalProvider>
         </KeyboardProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
