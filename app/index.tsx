@@ -276,15 +276,6 @@ export default function DashboardScreen() {
 
         <AIToggleCard value={aiOn} onToggle={handleAIToggle} />
 
-        {/* ── System info ── */}
-        <Text style={styles.sectionLabel}>SYSTEM INFO</Text>
-        <View style={styles.infoCard}>
-          <InfoRow label="Platform" value={Platform.OS} />
-          <InfoRow label="RN Version" value="0.81.4" />
-          <InfoRow label="Storage" value="MMKV" />
-          <InfoRow label="State" value="React Query" />
-        </View>
-
         {/* ── Enter Chat CTA ── */}
         <Pressable
           style={({ pressed }) => [
@@ -297,17 +288,6 @@ export default function DashboardScreen() {
           <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
         </Pressable>
       </ScrollView>
-    </View>
-  );
-}
-
-// ─── Info Row ────────────────────────────────────────────────────────────────
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
     </View>
   );
 }
@@ -496,31 +476,6 @@ const styles = StyleSheet.create((theme) => ({
     letterSpacing: 0.8,
     fontFamily: MONO,
   },
-  // Info card
-  infoCard: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 24,
-    gap: 8,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: theme.colors.textSecondary,
-    fontFamily: MONO,
-  },
-  infoValue: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: theme.colors.textPrimary,
-    fontFamily: MONO,
-  },
-
   // CTA Button
   ctaButton: {
     backgroundColor: AMBER,
