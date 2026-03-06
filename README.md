@@ -101,7 +101,10 @@ The app's home screen includes a debug panel with three feature toggles:
 
 ### Theming
 
-Light and dark themes configured via `react-native-unistyles`. The theme file (`theme/unistyles.ts`) defines:
+Light and dark themes configured via `react-native-unistyles`. 
+To toggle themes in the iOS Simulator, go to **Features > Toggle Appearance**. For best results, use a fresh session rather than one with hot-reloaded changes.
+
+The theme file (`theme/unistyles.ts`) defines:
 
 - Spacing scale (xxs through jumbo)
 - Typography scale (caption2 through display)

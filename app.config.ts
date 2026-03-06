@@ -41,6 +41,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
     "expo-audio",
     "expo-video",
+    "expo-font",
   ],
   experiments: {
     typedRoutes: true,

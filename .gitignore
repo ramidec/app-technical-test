@@ -186,4 +186,9 @@ expo-env.d.ts
 
 # Cursor
 .cursor/
-# DO NOT EDIT -- auto-updated from .gitconfig
+
+# Claude Code
+.claude/
+
+# Planning docs
+.planning/

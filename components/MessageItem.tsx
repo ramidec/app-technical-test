@@ -140,7 +140,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   avatarInitialsText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontFamily: theme.typography.font.semibold,
     color: theme.colors.textSecondary,
   },
   bubble: {
@@ -161,7 +161,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   messageText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: theme.typography.font.medium,
     lineHeight: 20,
   },
   messageTextClient: {
@@ -173,7 +173,7 @@ const styles = StyleSheet.create((theme) => ({
   timestamp: {
     color: theme.colors.textSecondary,
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: theme.typography.font.medium,
   },
   timestampLeft: {
     textAlign: 'left',

@@ -163,7 +163,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   optionLabel: {
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: theme.typography.font.medium,
     color: theme.colors.textPrimary,
     textAlign: 'center',
   },

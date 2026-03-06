@@ -96,7 +96,7 @@ const styles = StyleSheet.create((theme) => ({
   headerTitle: {
     flex: 1,
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: theme.typography.font.semibold,
     color: theme.colors.textPrimary,
     textAlign: 'center',
     marginHorizontal: 8,
@@ -112,6 +112,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   pdfFallbackText: {
     fontSize: 15,
+    fontFamily: theme.typography.font.regular,
     color: theme.colors.textSecondary,
   },
 }));

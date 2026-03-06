@@ -112,6 +112,6 @@ const styles = StyleSheet.create((theme) => ({
   durationText: {
     color: theme.colors.textWhite,
     fontSize: 11,
-    fontWeight: '500',
+    fontFamily: theme.typography.font.medium,
   },
 }));

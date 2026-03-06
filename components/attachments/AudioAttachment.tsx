@@ -235,7 +235,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   timeText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: theme.typography.font.medium,
     fontVariant: ['tabular-nums'],
     minWidth: 34,
   },
@@ -268,6 +268,6 @@ const styles = StyleSheet.create((theme) => ({
   },
   speedText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: theme.typography.font.semibold,
   },
 }));

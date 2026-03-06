@@ -64,6 +64,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   caption: {
     fontSize: 13,
+    fontFamily: theme.typography.font.regular,
     color: theme.colors.textPrimary,
     marginTop: 4,
   },

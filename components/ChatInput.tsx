@@ -578,7 +578,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   input: {
     fontSize: 16,
-    fontWeight: "500",
+    fontFamily: theme.typography.font.medium,
     color: theme.colors.textPrimary,
     textAlignVertical: "top",
     padding: 0,

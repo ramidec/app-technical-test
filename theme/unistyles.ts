@@ -46,6 +46,11 @@ export const typography = {
     medium: "500" as const,
     semibold: "600" as const,
   },
+  font: {
+    regular: "Inter_400Regular" as const,
+    medium: "Inter_500Medium" as const,
+    semibold: "Inter_600SemiBold" as const,
+  },
 } as const;
 
 // ─── Light Theme ─────────────────────────────────────────────────────────────

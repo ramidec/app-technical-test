@@ -10,6 +10,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold } from "@expo-google-fonts/inter";
+import * as SplashScreen from "expo-splash-screen";
+
+SplashScreen.preventAutoHideAsync();
 // Lazy — expo-audio uses NitroModules, unavailable in Expo Go
 let setAudioModeAsync:
   | ((opts: { playsInSilentMode: boolean }) => Promise<void>)
@@ -81,6 +85,11 @@ function ChatHeaderRight() {
 
 export default function RootLayout() {
   const { theme } = useAppTheme();
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+  });
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -94,6 +103,15 @@ export default function RootLayout() {
   useEffect(() => {
     setAudioModeAsync?.({ playsInSilentMode: true });
   }, []);
+
+  // Hide splash once fonts are ready
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return null;
 
   // headerStyle must be inline — React Navigation caches the prop value,
   // so Unistyles' C++ style updates don't reach it.
@@ -158,7 +176,7 @@ const styles = StyleSheet.create((theme) => ({
   avatarText: {
     color: theme.colors.textSecondary,
     fontSize: 12,
-    fontWeight: "600",
+    fontFamily: theme.typography.font.semibold,
   },
   textColumn: {
     flexDirection: "column",
@@ -166,13 +184,13 @@ const styles = StyleSheet.create((theme) => ({
   },
   name: {
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: theme.typography.font.semibold,
     color: theme.colors.textPrimary,
     textAlign: "left",
   },
   subtitle: {
     fontSize: 12,
-    fontWeight: "500",
+    fontFamily: theme.typography.font.medium,
     color: theme.colors.textSecondary,
     textAlign: "left",
   },

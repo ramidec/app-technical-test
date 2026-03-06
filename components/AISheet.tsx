@@ -191,7 +191,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: "600",
+    fontFamily: theme.typography.font.semibold,
     color: theme.colors.textPrimary,
   },
   section: {
@@ -199,7 +199,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   label: {
     fontSize: 13,
-    fontWeight: "500",
+    fontFamily: theme.typography.font.medium,
     color: theme.colors.textSecondary,
     marginLeft: 4,
   },
@@ -209,7 +209,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    fontWeight: "400",
+    fontFamily: theme.typography.font.regular,
     color: theme.colors.textPrimary,
   },
   intentInput: {
@@ -218,7 +218,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    fontWeight: "400",
+    fontFamily: theme.typography.font.regular,
     color: theme.colors.textPrimary,
   },
   confirmButton: {
@@ -237,7 +237,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   confirmButtonText: {
     fontSize: 16,
-    fontWeight: "600",
+    fontFamily: theme.typography.font.semibold,
     color: theme.colors.sendIconActive,
   },
   errorContainer: {
@@ -248,13 +248,14 @@ const styles = StyleSheet.create((theme) => ({
   },
   errorText: {
     fontSize: 13,
+    fontFamily: theme.typography.font.regular,
     color: "#E53935",
     flex: 1,
     marginRight: 12,
   },
   retryText: {
     fontSize: 14,
-    fontWeight: "600",
+    fontFamily: theme.typography.font.semibold,
     color: theme.colors.sendActive,
   },
 }));

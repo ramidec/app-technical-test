@@ -149,7 +149,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   fileName: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: theme.typography.font.medium,
     color: theme.colors.textPrimary,
   },
   textUser: {
@@ -157,6 +157,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   fileSize: {
     fontSize: 12,
+    fontFamily: theme.typography.font.regular,
     color: theme.colors.textSecondary,
     marginTop: 2,
   },

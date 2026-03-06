@@ -259,6 +259,24 @@ export default function SkeletonMessages() {
           boneColor={bone}
           bubbleColor={clientBg}
         />
+        <SkeletonBubble
+          isRight
+          bubbleWidth={Math.round(W * 0.88)}
+          lines={4}
+          showAvatar
+          progress={progress}
+          boneColor={bone}
+          bubbleColor={userBg}
+        />
+        <SkeletonBubble
+          isRight={false}
+          bubbleWidth={Math.round(W * 0.7)}
+          lines={1}
+          showAvatar
+          progress={progress}
+          boneColor={bone}
+          bubbleColor={clientBg}
+        />
       </View>
       <SkeletonInputBar
         progress={progress}

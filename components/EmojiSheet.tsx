@@ -386,6 +386,7 @@ const styles = StyleSheet.create((theme) => ({
   searchInput: {
     flex: 1,
     fontSize: 15,
+    fontFamily: theme.typography.font.regular,
     paddingVertical: 0,
   },
   // Category tabs
@@ -418,7 +419,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   sectionHeaderText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: theme.typography.font.semibold,
   },
   emojiRow: {
     flexDirection: 'row',
