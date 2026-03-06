@@ -5,6 +5,7 @@ const MOCK_CONTACT = {
   contactName: "Jessie Doe",
   contactFirstName: "Jessie",
   contactOrg: "NextGen Dynamics",
+  contactAvatar: "https://i.pravatar.cc/56?u=alexandra",
 };
 
 export function useContact() {

@@ -1,7 +1,7 @@
 import "../theme/unistyles";
 import { useEffect, useState } from "react";
 import { Stack, useRouter } from "expo-router";
-import { View, Text, Pressable, Alert } from "react-native";
+import { View, Text, Pressable, Alert, Image } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,7 +25,7 @@ try {
 }
 
 function ChatHeaderTitle() {
-  const { contactName, contactOrg } = useContact();
+  const { contactName, contactOrg, contactAvatar } = useContact();
   const initials = contactName
     .split(" ")
     .map((w) => w[0])
@@ -35,9 +35,13 @@ function ChatHeaderTitle() {
   return (
     <View style={styles.titlePill}>
       {/* Contact avatar */}
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{initials}</Text>
-      </View>
+      {contactAvatar ? (
+        <Image source={{ uri: contactAvatar }} style={styles.avatarImage} />
+      ) : (
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>{initials}</Text>
+        </View>
+      )}
       {/* Name + subtitle */}
       <View style={styles.textColumn}>
         <Text style={styles.name} numberOfLines={1}>
@@ -172,6 +176,11 @@ const styles = StyleSheet.create((theme) => ({
     backgroundColor: theme.colors.surface,
     alignItems: "center",
     justifyContent: "center",
+  },
+  avatarImage: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
   },
   avatarText: {
     color: theme.colors.textSecondary,
