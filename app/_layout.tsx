@@ -5,7 +5,11 @@ import { View, Text, Pressable, Alert } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { Ionicons } from "@expo/vector-icons";
-import { CONTACT_NAME, CONTACT_ORG } from "@/constants/channels";
+import { useContact } from "@/hooks/useContact";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { KeyboardProvider } from "react-native-keyboard-controller";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 // Lazy — expo-audio uses NitroModules, unavailable in Expo Go
 let setAudioModeAsync:
   | ((opts: { playsInSilentMode: boolean }) => Promise<void>)
@@ -15,13 +19,10 @@ try {
 } catch {
   // not available (Expo Go)
 }
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { KeyboardProvider } from "react-native-keyboard-controller";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 function ChatHeaderTitle() {
   const { theme } = useAppTheme();
+  const { contactName, contactOrg } = useContact();
   return (
     <View style={styles.titlePill}>
       {/* Contact avatar */}
@@ -31,10 +32,10 @@ function ChatHeaderTitle() {
       {/* Name + subtitle */}
       <View style={styles.textColumn}>
         <Text style={styles.name} numberOfLines={1}>
-          {CONTACT_NAME}
+          {contactName}
         </Text>
         <Text style={styles.subtitle} numberOfLines={1}>
-          {CONTACT_ORG}
+          {contactOrg}
         </Text>
       </View>
     </View>
@@ -62,10 +63,11 @@ function ChatHeaderLeft() {
 
 function ChatHeaderRight() {
   const { theme } = useAppTheme();
+  const { contactName } = useContact();
   return (
     <Pressable
       hitSlop={8}
-      onPress={() => Alert.alert("Calling...", CONTACT_NAME)}
+      onPress={() => Alert.alert("Calling...", contactName)}
     >
       <Ionicons name="call" size={24} color={theme.colors.textPrimary} />
     </Pressable>

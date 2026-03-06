@@ -116,7 +116,7 @@ export const lightTheme = {
     audioButtonBg: "#E8EAEA",
     audioButtonBorder: "#D5DADA",
     audioThumb: "#002C2A",
-    audioWrapperBg: "transparent",
+    audioWrapperBg: "rgba(0,0,0,0.05)",
     audioSpeedText: "#002C2A",
 
     // Audio player – user
