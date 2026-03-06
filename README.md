@@ -23,7 +23,7 @@ npm install
 # 2. Start the Expo dev server
 npx expo start
 
-# 3. Press 'i' to open in iOS simulator (or 's' for Expo Go)
+# 3. Press 'i' to open in iOS simulator
 ```
 
 Alternatively, to build and run directly on the iOS simulator:
