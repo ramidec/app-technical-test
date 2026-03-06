@@ -1,125 +1,196 @@
+# mfc-ai-chat
+
+A Slack-quality iOS chat app built with Expo and React Native. Features an expandable input with spring animations, AI-powered message formatting, rich media attachments, emoji picker, and a full design system with light/dark themes.
+
+> See [INSTRUCTIONS.md](./INSTRUCTIONS.md) for the original technical test brief.
+> See [PRODUCT_STRATEGY.html](./PRODUCT_STRATEGY.html) for the Part 2 product strategy deliverable (open in browser).
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- Xcode 15+ (for iOS simulator)
+- CocoaPods (`gem install cocoapods`)
+
+### Installation
+
+```bash
+# 1. Install dependencies
+npm install
+
+# 2. Install iOS native pods
+cd ios && pod install && cd ..
+
+# 3. Start the app on iOS simulator
+npm run ios
 ```
-      ╔═════════════════════════════════════════════════════════════╗
-      ║                      _____ _                                ║
-      ║                     |_   _| |__   ___                       ║
-      ║                       | | | '_ \ / _ \                      ║
-      ║                       | | | | | |  __/                      ║
-      ║                   _   |_| |_| |_|\___|  __ _          _     ║
-      ║   _ __ ___   ___ | |__ (_) | ___       / _(_)_ __ ___| |_   ║
-      ║  | '_ ` _ \ / _ \| '_ \| | |/ _ \ ___ | |_| | '__/ __| __|  ║
-      ║  | | | | | | (_) | |_) | | |  __/|___||  _| | |  \__ \ |_   ║
-      ║  |_| |_| |_|\___/|_.__/|_|_|\___|     |_| |_|_|  |___/\__|  ║
-      ║          ___ ___  _ __ ___  _ __   __ _ _ __  _   _         ║
-      ║         / __/ _ \| '_ ` _ \| '_ \ / _` | '_ \| | | |        ║
-      ║        | (_| (_) | | | | | | |_) | (_| | | | | |_| |        ║
-      ║         \___\___/|_| |_| |_| .__/ \__,_|_| |_|\__, |        ║
-      ║                            |_|                |___/         ║
-      ║                                                             ║
-      ╚═════════════════════════════════════════════════════════════╝
+
+### AI Message Formatter (optional)
+
+The sparkle button in the chat toolbar connects to **Google Gemini 2.5 Flash** to reformat messages. It works without an API key (the button just won't appear), but to enable it:
+
+1. Go to [aistudio.google.com](https://aistudio.google.com)
+2. Click **"Get API key"** in the left sidebar
+3. Create an API key (free tier, no billing required)
+4. Set it up:
+
+```bash
+cp .env.example .env
+# Edit .env and paste your key:
+# EXPO_PUBLIC_GEMINI_API_KEY=your_key_here
 ```
-# React Native Technical Test
 
-# Part 1: Chat Input Redesign Challenge
+5. Restart Metro:
 
-## Requirements
+```bash
+npx expo start --clear
+```
 
-Your goal is to redesign the chat input component in `app/index.tsx` to create a delightful and intuitive user experience. The current implementation has a basic input field and send button, but we want you to elevate it to match the polish and behavior of industry-leading chat applications.
+---
 
-### Design Reference
+## What's Inside
 
-**Figma Design**: https://www.figma.com/design/sKoVdC8r9K0fCpe4oKI4au/Chat-Technical-Test?node-id=0-1&t=4CvumWtfXRS5tKvU-1
+### Chat Screen
 
-The Figma design provides the visual specifications for the new input design. You should follow the design closely while ensuring the implementation feels natural and responsive.
+- **Message list** powered by `@shopify/flash-list` with message grouping and avatar clustering
+- **Optimistic updates** via TanStack Query: messages appear instantly on send, with rollback on failure
+- **Skeleton loading** with staggered pulse animations while data loads
+- **Keyboard sync** through `react-native-keyboard-controller` for frame-perfect keyboard transitions
 
-### Behavioral Reference
+### Chat Input
 
-**Slack Input Behavior**: Study and replicate the input behavior from the Slack application. Pay close attention to:
+- **Expandable height** from 1 to 6 lines using Reanimated spring animations on the UI thread
+- **Swipe-to-expand** gesture with haptic feedback at the threshold
+- **Dynamic send button** with scale/fade animations, conditional rendering based on input content
+- **Toolbar** with three actions: attachments, emoji, and AI formatter
 
-- **Dynamic Height**: The input should grow smoothly as users type multiple lines
-- **Keyboard Interactions**: Smooth transitions when the keyboard appears/disappears
-- **Send Button States**: The send button should change state based on input content
-- **Animations**: Subtle, polished animations that enhance the experience without being distracting
+### Attachments
 
-### Core Features
+- **Attachment sheet**: bottom sheet with camera, photos, file, audio, video, and location options
+- **Image attachments**: inline rendering with tap-to-view fullscreen modal
+- **Audio player**: play/pause, waveform visualization, gesture-driven scrubbing, speed toggle (1x/1.5x/2x)
+- **Video attachments**: thumbnail with play overlay
+- **File attachments**: icon + metadata with PDF viewer integration
 
-1. **Visual Design**
-   - Follow the Figma design specifications precisely
-   - Ensure pixel-perfect implementation of spacing, colors, typography, and borders
-   - Maintain consistency with the overall app design language
+### Emoji Picker
 
-2. **User Experience**
-   - Replicate the intuitive behavior of Slack's input
-   - Smooth animations and transitions throughout
-   - Responsive feedback for all user interactions
-   - Handle edge cases gracefully (empty input, long text, keyboard states, etc.)
+- Full emoji set organized by category with search
+- Recently used emojis persisted in MMKV
+- 8-column grid layout in a bottom sheet (50%/80% snap points)
 
-### What We're Looking For
+### AI Message Formatter
 
-- **Attention to Detail**: Pixel-perfect implementation of the Figma design
-- **User-Centric Thinking**: Understanding of what makes an input experience delightful
-- **Technical Excellence**: Clean, maintainable code with proper state management
-- **Polish**: Smooth animations, proper edge case handling, and professional finish
+- Tap the sparkle icon to open the AI sheet
+- Type a rough draft, optionally set a tone (professional, friendly, apologetic)
+- Gemini 2.5 Flash returns a polished, Slack-appropriate message
+- Animated gradient sparkle icon with shimmer effect (MaskedView + LinearGradient)
+- Connection status visible in the Debug Dashboard
 
-### Current Implementation
+### Debug Dashboard
 
-The current input is located in `app/index.tsx` and consists of:
-- A basic `TextInput` component
-- A simple send button
-- Basic keyboard avoidance
+The app's home screen includes a debug panel with three feature toggles:
 
-Your task is to transform this into a polished, production-ready input component that rivals the best chat applications in the industry.
+| Toggle | What it does |
+|--------|-------------|
+| Skeleton Loading | Forces the skeleton loading animation |
+| Persist Messages | Enables/disables MMKV message persistence |
+| AI Formatter | Shows/hides the AI button + displays Gemini API connection status |
 
-# Part 2: Product Strategy & Design Challenge
+### Theming
 
-## The Challenge: Design the Next Evolution of Your Chat
+Light and dark themes configured via `react-native-unistyles`. 
+To toggle themes in the iOS Simulator, go to **Features > Toggle Appearance**. For best results, use a fresh session rather than one with hot-reloaded changes.
 
-After completing the chat input redesign, you now have a polished chat interface with a delightful input experience. But how can you make the entire chat experience more valuable and engaging for users?
+The theme file (`theme/unistyles.ts`) defines:
 
-**Your Mission**: Analyze the current chat implementation and design 2-3 strategic enhancements that would significantly improve user value and engagement. Focus on **why** these improvements matter, not just **what** to build.
+- Spacing scale (xxs through jumbo)
+- Typography scale (caption2 through display)
+- Border radius tokens
+- Color palette for message bubbles, input bar, attachments, and system elements
 
-## What We're Looking For
+The app respects the system color scheme setting.
 
-1. **Problem Analysis**: What specific user pain points or business opportunities did you identify? Why are these important?
-2. **Strategic Thinking**: How did you prioritize which improvements to focus on? What trade-offs did you consider?
-3. **Solution Design**: What would your ideal solution look like? How would users interact with it?
-4. **Technical Feasibility**: What are the technical challenges and implementation considerations?
-5. **Business Impact**: How would these improvements drive user engagement, retention, or other business metrics?
+---
 
-## Your Deliverable
+## Tech Stack
 
-**Write a comprehensive analysis** that covers:
+| Layer | Library | Version |
+|-------|---------|---------|
+| Framework | Expo | ~54.0 |
+| Runtime | React Native | 0.81.4 |
+| Navigation | expo-router | ~6.0 |
+| Animations | react-native-reanimated | ~4.1.1 |
+| Gestures | react-native-gesture-handler | ~2.28.0 |
+| Message List | @shopify/flash-list | 2.0.2 |
+| State | @tanstack/react-query | ^5.90.21 |
+| Keyboard | react-native-keyboard-controller | 1.18.5 |
+| Bottom Sheets | @gorhom/bottom-sheet | ^5.2.8 |
+| Storage | react-native-mmkv | ^4.2.0 |
+| Theming | react-native-unistyles | ^3.0.24 |
+| Haptics | expo-haptics | ~15.0.7 |
 
-- **Current State Assessment**: What works well in your Part 1 implementation? What are the limitations?
-- **Opportunity Identification**: What 2-3 specific improvements would you prioritize and why?
-- **Solution Design**: Describe your proposed enhancements in detail - user flows, UI concepts, technical approach
-- **Justification**: Why these specific improvements over others? What evidence or reasoning supports your choices?
-- **Implementation Roadmap**: How would you approach building these features? What are the technical challenges?
+---
 
-## Optional: Proof of Concept
+## Project Structure
 
-If you want to demonstrate your ideas, you can implement a simple prototype of one feature.
+```
+app/
+  _layout.tsx          Root layout (providers + navigation)
+  index.tsx            Debug dashboard
+  chat.tsx             Main chat screen
 
-## Evaluation Criteria
+components/
+  ChatInput.tsx        Expandable input with swipe gesture
+  MessageItem.tsx      Message bubble + attachment rendering
+  AttachmentSheet.tsx  Attachment picker bottom sheet
+  EmojiSheet.tsx       Emoji picker with search/recents
+  AISheet.tsx          AI formatter dialog
+  GradientAIIcon.tsx   Animated sparkle icon
+  SkeletonMessages.tsx Loading skeleton
+  ImageViewer.tsx      Fullscreen image modal
+  VideoPlayerModal.tsx Video player
+  PdfViewerModal.tsx   PDF viewer
 
-### Part 1: Chat Input Redesign
-- **Design Fidelity**: Accuracy in implementing the Figma design specifications
-- **Behavioral Accuracy**: Faithful replication of Slack iOS input behavior
-- **Technical Depth**: Understanding of React Native, mobile development patterns, and best practices
-- **Code Quality**: Well-structured, maintainable code with proper state management
-- **Polish**: Smooth animations, proper edge case handling, and professional finish
+hooks/
+  useMessages.ts       Infinite query wrapper + cache merging
+  useSendMessage.ts    Mutation with optimistic updates
+  useAppTheme.ts       Theme consumer
+  useContact.ts        Contact info
 
-### Part 2: Product Strategy
-- **Problem-Solving**: Clear thinking process and well-reasoned solutions
-- **Strategic Thinking**: Ability to identify and prioritize valuable improvements
-- **User-Centric Approach**: Understanding of user needs and business impact
+services/
+  ai.ts                Gemini API client
+  mockMessages.ts      Mock conversation data + asset loading
+  storage.ts           MMKV persistence wrapper
+  debugSettings.ts     Feature flag getters/setters
 
-# Getting Started
+theme/
+  unistyles.ts         Light/dark theme + design tokens
 
-1. Fork this repository on your own GitHub account
-2. Study the Figma design and Slack iOS input behavior
-3. Redesign the chat input in `app/index.tsx` following the design and behavioral requirements
-4. Complete the product strategy challenge (Part 2)
-5. Document your approach and decisions
-6. Send us the URL to your forked repository with clear instructions for running the app
+types/
+  message.ts           Message, MessageRole, MessageAttachment
 
-Good luck! We're excited to see your solution and thought process.
+utils/
+  haptics.ts           Haptic feedback helpers
+  emojiRecents.ts      MMKV-backed recent emoji history
+  messageGrouping.ts   Avatar grouping logic
+  safeAudio.ts         Lazy audio wrapper
+  fileDownload.ts      File sharing utilities
+```
+
+---
+
+## Architecture Notes
+
+- **New Architecture** enabled (`newArchEnabled: true`)
+- **React Compiler** enabled via Expo experiments
+- **Typed routes** for compile-time route safety
+- **Provider stack** in `_layout.tsx`: GestureHandler > QueryClient > Keyboard > BottomSheet > Stack Navigator
+- **Discriminated unions** for attachment types (image | audio | video | file) with exhaustive rendering
+- **UI-thread animations** via Reanimated shared values for all transitions
+
+---
+
+Built by Ramiro Decono for the mobile.first technical test.

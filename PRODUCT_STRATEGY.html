@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Strategy: The Next Evolution of Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,700;0,800;1,700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#06060b;--bg-card:rgba(255,255,255,0.03);--bg-card-hover:rgba(255,255,255,0.06);
+  --text:#e8e8ed;--text-dim:#8a8a9a;--text-muted:#55556a;
+  --blue:#007AFF;--purple:#8B5CF6;--cyan:#06B6D4;--green:#10B981;--amber:#F59E0B;
+  --blue-glow:rgba(0,122,255,0.15);--purple-glow:rgba(139,92,246,0.12);--cyan-glow:rgba(6,182,212,0.12);
+  --serif:'Playfair Display',Georgia,serif;--sans:'DM Sans',system-ui,-apple-system,sans-serif;--mono:'JetBrains Mono',monospace;
+  --ease-out:cubic-bezier(0.16,1,0.3,1);--ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+}
+html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.1) transparent}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.7;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(0,122,255,0.3);color:#fff}
+a{color:var(--blue);text-decoration:none;transition:color .2s}
+a:hover{color:var(--cyan)}
+
+/* ─── Noise overlay ─── */
+body::before{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ─── Floating nav ─── */
+.nav-float{position:fixed;right:28px;top:50%;transform:translateY(-50%);z-index:100;display:flex;flex-direction:column;gap:16px;align-items:flex-end}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);transition:all .4s var(--ease-out);cursor:pointer;position:relative}
+.nav-dot::after{content:attr(data-label);position:absolute;right:18px;top:50%;transform:translateY(-50%);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;opacity:0;transition:opacity .3s;pointer-events:none;font-family:var(--mono)}
+.nav-dot:hover::after{opacity:1}
+.nav-dot.active{width:8px;height:8px;background:var(--blue);box-shadow:0 0 12px var(--blue-glow)}
+
+/* ─── Section animations ─── */
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .8s var(--ease-out),transform .8s var(--ease-out)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:.1s}.reveal-delay-2{transition-delay:.2s}.reveal-delay-3{transition-delay:.3s}.reveal-delay-4{transition-delay:.4s}
+
+/* ─── Container ─── */
+.container{max-width:900px;margin:0 auto;padding:0 32px}
+section{padding:120px 0;position:relative}
+
+/* ═══════════════════════════════════════ HERO ═══════════════════════════════════════ */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden}
+.hero-bg{position:absolute;inset:0;z-index:0}
+.hero-bg .orb{position:absolute;border-radius:50%;filter:blur(120px);opacity:.4;animation:orbFloat 20s ease-in-out infinite}
+.hero-bg .orb-1{width:500px;height:500px;background:var(--blue);top:-15%;left:-10%;animation-delay:0s}
+.hero-bg .orb-2{width:400px;height:400px;background:var(--purple);bottom:-10%;right:-5%;animation-delay:-7s}
+.hero-bg .orb-3{width:300px;height:300px;background:var(--cyan);top:40%;left:60%;animation-delay:-14s;opacity:.2}
+@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(30px,-40px) scale(1.05)}50%{transform:translate(-20px,30px) scale(.95)}75%{transform:translate(40px,20px) scale(1.02)}}
+
+.hero-content{position:relative;z-index:1}
+.hero-eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--blue);margin-bottom:24px;opacity:0;animation:fadeUp .8s var(--ease-out) .2s forwards}
+.hero h1{font-family:var(--serif);font-size:clamp(40px,6vw,72px);font-weight:800;line-height:1.05;letter-spacing:-.02em;margin-bottom:20px;opacity:0;animation:fadeUp .8s var(--ease-out) .4s forwards}
+.hero h1 .accent{background:linear-gradient(135deg,var(--blue),var(--purple),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:clamp(17px,2vw,20px);color:var(--text-dim);max-width:520px;margin:0 auto 40px;opacity:0;animation:fadeUp .8s var(--ease-out) .6s forwards;font-weight:300}
+.hero-author{display:flex;align-items:center;gap:12px;justify-content:center;opacity:0;animation:fadeUp .8s var(--ease-out) .8s forwards}
+.hero-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;color:#fff}
+.hero-author-info{text-align:left}
+.hero-author-name{font-weight:600;font-size:14px}
+.hero-author-role{font-size:12px;color:var(--text-muted);font-family:var(--mono)}
+.hero-scroll{position:absolute;bottom:40px;left:50%;transform:translateX(-50%);opacity:0;animation:fadeUp .8s var(--ease-out) 1.2s forwards}
+.hero-scroll span{display:block;width:1px;height:40px;background:linear-gradient(to bottom,var(--text-muted),transparent);margin:0 auto 8px;animation:scrollPulse 2s ease-in-out infinite}
+.hero-scroll small{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);font-family:var(--mono)}
+@keyframes scrollPulse{0%,100%{opacity:.3;height:40px}50%{opacity:.8;height:50px}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── Divider ─── */
+.section-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);margin:0 auto;max-width:600px}
+
+/* ═══════════════════════════════════ ASSESSMENT ═══════════════════════════════════ */
+.section-label{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.section-label::before{content:'';width:20px;height:1px;background:var(--blue)}
+.section-title{font-family:var(--serif);font-size:clamp(28px,4vw,42px);font-weight:700;line-height:1.15;margin-bottom:16px;letter-spacing:-.01em}
+.section-desc{color:var(--text-dim);font-size:17px;max-width:600px;margin-bottom:48px;font-weight:300}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:56px}
+.stat-card{background:var(--bg-card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:28px 20px;text-align:center;transition:all .4s var(--ease-out);position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,.02));pointer-events:none}
+.stat-card:hover{background:var(--bg-card-hover);border-color:rgba(255,255,255,.1);transform:translateY(-4px)}
+.stat-value{font-family:var(--mono);font-size:28px;font-weight:700;margin-bottom:6px;background:linear-gradient(135deg,var(--text),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:12px;color:var(--text-muted);letter-spacing:.04em;text-transform:uppercase}
+
+/* Strengths */
+.strengths-list{display:grid;gap:12px;margin-top:32px}
+.strength-item{display:flex;gap:16px;align-items:flex-start;padding:20px 24px;background:var(--bg-card);border:1px solid rgba(255,255,255,.04);border-radius:12px;transition:all .3s var(--ease-out)}
+.strength-item:hover{border-color:rgba(255,255,255,.08);background:var(--bg-card-hover)}
+.strength-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;font-weight:600}
+.strength-text h4{font-size:14px;font-weight:600;margin-bottom:4px}
+.strength-text p{font-size:13px;color:var(--text-dim);line-height:1.55}
+
+/* ═══════════════════════════════════ PILLARS ═══════════════════════════════════ */
+.pillar-section{padding:100px 0}
+.pillar-header{display:flex;align-items:flex-start;gap:20px;margin-bottom:40px}
+.pillar-number{font-family:var(--mono);font-size:64px;font-weight:700;line-height:1;opacity:.1;flex-shrink:0}
+.pillar-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px}
+.badge-shipped{background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.2)}
+.badge-proposed{background:rgba(139,92,246,.1);color:var(--purple);border:1px solid rgba(139,92,246,.2)}
+.badge-proposed-cyan{background:rgba(6,182,212,.1);color:var(--cyan);border:1px solid rgba(6,182,212,.2)}
+.pillar-title{font-family:var(--serif);font-size:clamp(24px,3.5vw,36px);font-weight:700;line-height:1.2;margin-bottom:8px}
+.pillar-subtitle{color:var(--text-dim);font-size:15px;font-weight:300}
+
+/* Problem/Solution cards */
+.ps-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px}
+.ps-card{padding:28px;border-radius:14px;border:1px solid rgba(255,255,255,.05)}
+.ps-card.problem{background:rgba(245,158,11,.04);border-color:rgba(245,158,11,.1)}
+.ps-card.solution{background:rgba(16,185,129,.04);border-color:rgba(16,185,129,.1)}
+.ps-card-label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px}
+.ps-card.problem .ps-card-label{color:var(--amber)}
+.ps-card.solution .ps-card-label{color:var(--green)}
+.ps-card p{font-size:14px;color:var(--text-dim);line-height:1.6}
+.ps-card p strong{color:var(--text);font-weight:500}
+
+/* Feature list */
+.feature-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0}
+.feature-tag{padding:6px 14px;border-radius:100px;font-size:12px;font-weight:500;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--text-dim);transition:all .2s}
+.feature-tag:hover{background:rgba(255,255,255,.07);color:var(--text)}
+
+/* Technical box */
+.tech-box{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:24px;margin-top:24px}
+.tech-box h5{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:14px}
+.tech-stack{display:flex;flex-wrap:wrap;gap:8px}
+.tech-tag{padding:4px 10px;border-radius:6px;font-family:var(--mono);font-size:12px;background:rgba(0,122,255,.08);color:var(--blue);border:1px solid rgba(0,122,255,.15)}
+
+/* Impact bar */
+.impact-section{margin-top:32px;padding:24px 28px;border-radius:14px;background:linear-gradient(135deg,rgba(0,122,255,.06),rgba(139,92,246,.04));border:1px solid rgba(0,122,255,.1)}
+.impact-section h5{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);margin-bottom:10px}
+.impact-section p{font-size:14px;color:var(--text-dim);line-height:1.6}
+
+/* ═══════════════════════════════════ MATRIX ═══════════════════════════════════ */
+.matrix-wrap{position:relative;margin:48px auto;max-width:600px;aspect-ratio:1.4/1}
+.matrix-bg{position:absolute;inset:0;border:1px solid rgba(255,255,255,.06);border-radius:16px;background:var(--bg-card);overflow:hidden}
+.matrix-bg::before{content:'';position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:25% 25%}
+.matrix-axis-x,.matrix-axis-y{position:absolute;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
+.matrix-axis-x{bottom:-28px;left:50%;transform:translateX(-50%)}
+.matrix-axis-y{top:50%;left:-50px;transform:rotate(-90deg) translateX(-50%);transform-origin:center}
+.matrix-label{position:absolute;font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.2);letter-spacing:.05em}
+.matrix-label.low-left{bottom:12px;left:14px}.matrix-label.high-right{bottom:12px;right:14px}
+.matrix-label.low-top{top:12px;left:14px}.matrix-label.high-top{top:12px;right:14px}
+
+.matrix-dot{position:absolute;width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .4s var(--ease-spring);z-index:2}
+.matrix-dot:hover{transform:scale(1.3);z-index:3}
+.matrix-dot .dot-inner{width:16px;height:16px;border-radius:50%;transition:all .3s}
+.matrix-dot:hover .dot-inner{width:20px;height:20px}
+.matrix-dot .dot-ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid;opacity:.3;transition:opacity .3s}
+.matrix-dot:hover .dot-ring{opacity:.6}
+.matrix-tooltip{position:absolute;bottom:calc(100% + 12px);left:50%;transform:translateX(-50%);background:rgba(20,20,30,.95);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 16px;white-space:nowrap;opacity:0;pointer-events:none;transition:all .3s var(--ease-out);backdrop-filter:blur(12px)}
+.matrix-dot:hover .matrix-tooltip{opacity:1;transform:translateX(-50%) translateY(-4px)}
+.matrix-tooltip h6{font-size:12px;font-weight:600;margin-bottom:3px}
+.matrix-tooltip small{font-size:10px;color:var(--text-muted);font-family:var(--mono)}
+
+/* ═══════════════════════════════════ ROADMAP ═══════════════════════════════════ */
+.roadmap{position:relative;padding-left:40px}
+.roadmap::before{content:'';position:absolute;left:11px;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,var(--blue),var(--purple),var(--cyan),transparent)}
+.roadmap-item{position:relative;margin-bottom:48px}
+.roadmap-dot{position:absolute;left:-40px;top:4px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.roadmap-dot::before{content:'';width:8px;height:8px;border-radius:50%}
+.roadmap-item:nth-child(1) .roadmap-dot{background:rgba(0,122,255,.15)}.roadmap-item:nth-child(1) .roadmap-dot::before{background:var(--blue)}
+.roadmap-item:nth-child(2) .roadmap-dot{background:rgba(139,92,246,.15)}.roadmap-item:nth-child(2) .roadmap-dot::before{background:var(--purple)}
+.roadmap-item:nth-child(3) .roadmap-dot{background:rgba(6,182,212,.15)}.roadmap-item:nth-child(3) .roadmap-dot::before{background:var(--cyan)}
+.roadmap-item:nth-child(4) .roadmap-dot{background:rgba(16,185,129,.15)}.roadmap-item:nth-child(4) .roadmap-dot::before{background:var(--green)}
+.roadmap-weeks{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px}
+.roadmap-item:nth-child(1) .roadmap-weeks{color:var(--blue)}
+.roadmap-item:nth-child(2) .roadmap-weeks{color:var(--purple)}
+.roadmap-item:nth-child(3) .roadmap-weeks{color:var(--cyan)}
+.roadmap-item:nth-child(4) .roadmap-weeks{color:var(--green)}
+.roadmap-title{font-weight:600;font-size:17px;margin-bottom:6px}
+.roadmap-desc{font-size:13px;color:var(--text-dim);line-height:1.6}
+.roadmap-tasks{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+.roadmap-task{font-size:11px;padding:3px 10px;border-radius:6px;background:rgba(255,255,255,.04);color:var(--text-muted);border:1px solid rgba(255,255,255,.06)}
+
+/* ═══════════════════════════════════ WHY THESE THREE ═══════════════════════════════════ */
+.equation{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;margin:40px 0;padding:40px;background:var(--bg-card);border:1px solid rgba(255,255,255,.06);border-radius:20px}
+.eq-term{text-align:center}
+.eq-term h4{font-size:15px;font-weight:600;margin-bottom:4px}
+.eq-term small{font-size:11px;color:var(--text-muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.eq-op{font-family:var(--serif);font-size:28px;color:var(--text-muted);font-weight:300}
+.eq-result{padding-left:20px;border-left:2px solid var(--blue)}
+.eq-result h4{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.eq-result small{font-size:11px;color:var(--text-dim)}
+
+/* Justification cards */
+.justify-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px}
+.justify-card{padding:24px;border-radius:14px;background:var(--bg-card);border:1px solid rgba(255,255,255,.05);transition:all .3s var(--ease-out)}
+.justify-card:hover{border-color:rgba(255,255,255,.1);transform:translateY(-2px)}
+.justify-card h5{font-size:13px;font-weight:600;margin-bottom:8px}
+.justify-card p{font-size:12px;color:var(--text-dim);line-height:1.55}
+
+/* ═══════════════════════════════════ FOOTER ═══════════════════════════════════ */
+footer{padding:80px 0 60px;text-align:center;border-top:1px solid rgba(255,255,255,.05)}
+footer p{font-size:14px;color:var(--text-dim);margin-bottom:8px}
+footer small{font-size:11px;color:var(--text-muted);font-family:var(--mono);letter-spacing:.04em}
+footer .sig{font-family:var(--serif);font-style:italic;font-size:16px;color:var(--text-dim);margin-bottom:24px}
+
+/* ═══════════════════════════════════ RESPONSIVE ═══════════════════════════════════ */
+@media(max-width:768px){
+  .container{padding:0 20px}
+  section{padding:80px 0}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .ps-grid{grid-template-columns:1fr}
+  .justify-grid{grid-template-columns:1fr}
+  .nav-float{display:none}
+  .equation{gap:12px;padding:24px}
+  .matrix-wrap{margin-left:-20px;margin-right:-20px}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .stat-card{padding:20px 14px}
+  .stat-value{font-size:22px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ FLOATING NAV ═══════════════════════ -->
+<nav class="nav-float" aria-label="Section navigation">
+  <div class="nav-dot active" data-label="Intro" data-section="hero"></div>
+  <div class="nav-dot" data-label="Assessment" data-section="assessment"></div>
+  <div class="nav-dot" data-label="Intelligence" data-section="pillar-1"></div>
+  <div class="nav-dot" data-label="Connectivity" data-section="pillar-2"></div>
+  <div class="nav-dot" data-label="Knowledge" data-section="pillar-3"></div>
+  <div class="nav-dot" data-label="Priority" data-section="matrix"></div>
+  <div class="nav-dot" data-label="Roadmap" data-section="roadmap"></div>
+  <div class="nav-dot" data-label="Why" data-section="why"></div>
+</nav>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<section class="hero" id="hero">
+  <div class="hero-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Part 2 // Product Strategy</div>
+    <h1>The Next Evolution<br>of <span class="accent">Chat</span></h1>
+    <p class="hero-sub">From a polished input experience to a complete messaging platform. Three strategic pillars that transform a chat app into a team OS.</p>
+    <div class="hero-author">
+      <div class="hero-avatar">RD</div>
+      <div class="hero-author-info">
+        <div class="hero-author-name">Ramiro Decono</div>
+        <div class="hero-author-role">mobile.first technical test</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <span></span>
+    <small>Scroll</small>
+  </div>
+</section>
+
+<!-- ═══════════════════════ ASSESSMENT ═══════════════════════ -->
+<div class="section-divider"></div>
+<section id="assessment">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Current State</div>
+      <h2 class="section-title">What Part 1 delivered</h2>
+      <p class="section-desc">The chat input redesign went beyond the brief. Rather than a single component tweak, I built a full messaging interface with the polish you'd expect from a real product.</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card reveal reveal-delay-1">
+        <div class="stat-value" data-count="120" data-suffix="fps">0</div>
+        <div class="stat-label">Animation frame rate</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-2">
+        <div class="stat-value" data-count="12" data-suffix="+" data-prefix="">0</div>
+        <div class="stat-label">Custom components</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-3">
+        <div class="stat-value special-ai">AI</div>
+        <div class="stat-label">Powered input</div>
+      </div>
+      <div class="stat-card reveal reveal-delay-4">
+        <div class="stat-value" data-count="6">0</div>
+        <div class="stat-label">Attachment types</div>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:4px;">What works well</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Features that set the foundation for what comes next.</p>
+    </div>
+
+    <div class="strengths-list">
+      <div class="strength-item reveal reveal-delay-1">
+        <div class="strength-icon" style="background:rgba(0,122,255,.1);color:var(--blue);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="strength-text">
+          <h4>120fps Spring Animations</h4>
+          <p>Every transition runs on the native UI thread via Reanimated v4. Input expansion, send button scaling, keyboard sync: all smooth, zero JS bridge lag.</p>
+        </div>
+      </div>
+      <div class="strength-item reveal reveal-delay-2">
+        <div class="strength-icon" style="background:rgba(139,92,246,.1);color:var(--purple);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        </div>
+        <div class="strength-text">
+          <h4>Rich Emoji &amp; Attachment Sheets</h4>
+          <p>Full emoji picker with search, categories, and MMKV-backed recents. Attachment sheet with six mocked options, spring physics, and haptic feedback on every interaction.</p>
+        </div>
+      </div>
+      <div class="strength-item reveal reveal-delay-3">
+        <div class="strength-icon" style="background:rgba(6,182,212,.1);color:var(--cyan);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="strength-text">
+          <h4>Optimistic Updates &amp; Persistence</h4>
+          <p>Messages appear instantly on send via TanStack Query cache manipulation, with automatic rollback on failure. MMKV persistence means conversations survive app restarts.</p>
+        </div>
+      </div>
+      <div class="strength-item reveal reveal-delay-4">
+        <div class="strength-icon" style="background:rgba(245,158,11,.1);color:var(--amber);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <div class="strength-text">
+          <h4>Audio Player with Scrubbing</h4>
+          <p>Full audio attachment with play/pause, gesture-driven seeking, waveform visualization, and speed toggle (1x/1.5x/2x). Styled differently for sent vs received.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="reveal" style="margin-top:48px;">
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:4px;">What's missing</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">The gaps that define the opportunity space.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
+        <div style="padding:14px 18px;border-radius:10px;border:1px dashed rgba(255,255,255,.08);font-size:13px;color:var(--text-muted);">No real-time presence or typing indicators</div>
+        <div style="padding:14px 18px;border-radius:10px;border:1px dashed rgba(255,255,255,.08);font-size:13px;color:var(--text-muted);">No conversation threading or replies</div>
+        <div style="padding:14px 18px;border-radius:10px;border:1px dashed rgba(255,255,255,.08);font-size:13px;color:var(--text-muted);">No voice/video communication</div>
+        <div style="padding:14px 18px;border-radius:10px;border:1px dashed rgba(255,255,255,.08);font-size:13px;color:var(--text-muted);">No persistent shared knowledge base</div>
+        <div style="padding:14px 18px;border-radius:10px;border:1px dashed rgba(255,255,255,.08);font-size:13px;color:var(--text-muted);">No message reactions</div>
+        <div style="padding:14px 18px;border-radius:10px;border:1px dashed rgba(255,255,255,.08);font-size:13px;color:var(--text-muted);">No message search or pinning</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ PILLAR 1 ═══════════════════════ -->
+<div class="section-divider"></div>
+<section class="pillar-section" id="pillar-1">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Strategic Pillar 1</div>
+    </div>
+    <div class="pillar-header reveal">
+      <div class="pillar-number" style="color:var(--green);">01</div>
+      <div>
+        <div class="pillar-badge badge-shipped">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Proof of Concept / Shipped
+        </div>
+        <h2 class="pillar-title">Intelligence</h2>
+        <p class="pillar-subtitle">AI-Powered Message Formatter</p>
+      </div>
+    </div>
+
+    <div class="ps-grid reveal">
+      <div class="ps-card problem">
+        <div class="ps-card-label">The Problem</div>
+        <p>Users frequently send poorly formatted, unclear, or tonally mismatched messages in professional contexts. <strong>Miscommunication costs teams hours</strong> in clarification threads, and many users hesitate to send at all because they're unsure how their message will land.</p>
+      </div>
+      <div class="ps-card solution">
+        <div class="ps-card-label">The Solution</div>
+        <p>A one-tap AI formatter powered by <strong>Google Gemini 2.5 Flash</strong>. Users type a rough draft, press the sparkle icon, optionally set a tone (professional, friendly, apologetic), and receive a polished, Slack-appropriate message. The original draft is preserved for comparison.</p>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <h4 style="font-size:13px;font-weight:600;margin-bottom:12px;">What was built</h4>
+      <div class="feature-list">
+        <span class="feature-tag">AISheet bottom sheet modal</span>
+        <span class="feature-tag">Gemini API integration</span>
+        <span class="feature-tag">Animated gradient sparkle icon</span>
+        <span class="feature-tag">Tone/intent selector</span>
+        <span class="feature-tag">Error handling with retry</span>
+        <span class="feature-tag">Debug dashboard status</span>
+        <span class="feature-tag">Connection health check</span>
+        <span class="feature-tag">System prompt engineering</span>
+      </div>
+    </div>
+
+    <div class="tech-box reveal">
+      <h5>Technical Stack</h5>
+      <div class="tech-stack">
+        <span class="tech-tag">Google Gemini 2.5 Flash</span>
+        <span class="tech-tag">@gorhom/bottom-sheet</span>
+        <span class="tech-tag">MaskedView + LinearGradient</span>
+        <span class="tech-tag">Reanimated shimmer</span>
+        <span class="tech-tag">expo-haptics</span>
+      </div>
+    </div>
+
+    <div class="impact-section reveal">
+      <h5>Business Impact</h5>
+      <p>Reduces miscommunication by helping users express intent clearly. In a team context, this saves time on follow-up clarifications. The AI button also serves as a differentiation feature: it positions the app beyond commodity chat toward intelligent communication tools.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ PILLAR 2 ═══════════════════════ -->
+<div class="section-divider"></div>
+<section class="pillar-section" id="pillar-2">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Strategic Pillar 2</div>
+    </div>
+    <div class="pillar-header reveal">
+      <div class="pillar-number" style="color:var(--purple);">02</div>
+      <div>
+        <div class="pillar-badge badge-proposed">Proposed</div>
+        <h2 class="pillar-title">Connectivity</h2>
+        <p class="pillar-subtitle">Huddles: Live Audio Rooms</p>
+      </div>
+    </div>
+
+    <div class="ps-grid reveal">
+      <div class="ps-card problem">
+        <div class="ps-card-label">The Problem</div>
+        <p>There's a big gap between async text and scheduling a full video call. <strong>A long message thread that spirals for 30 minutes could be resolved in a quick voice conversation.</strong> But joining a "meeting" feels heavy: you need a link, a calendar invite, a camera check. Teams need something lighter.</p>
+      </div>
+      <div class="ps-card solution">
+        <div class="ps-card-label">The Solution</div>
+        <p>Lightweight, <strong>tap-to-start audio rooms</strong> within any conversation. No scheduling, no links, no friction. Think Slack Huddles: one tap starts a room, others see a banner and join with one more tap. The "hallway conversation" that remote teams have been missing since 2020.</p>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <h4 style="font-size:13px;font-weight:600;margin-bottom:12px;">Proposed features</h4>
+      <div class="feature-list">
+        <span class="feature-tag">One-tap huddle start</span>
+        <span class="feature-tag">Presence indicators</span>
+        <span class="feature-tag">Floating mini-player</span>
+        <span class="feature-tag">Invite to huddle</span>
+        <span class="feature-tag">Screen sharing</span>
+        <span class="feature-tag">Online / Away / Offline status</span>
+        <span class="feature-tag">Mute/unmute with haptics</span>
+        <span class="feature-tag">Active speaker indicator</span>
+      </div>
+    </div>
+
+    <div class="reveal" style="margin-top:28px;padding:20px 24px;border-radius:12px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.12);">
+      <h4 style="font-size:13px;font-weight:600;color:var(--purple);margin-bottom:8px;">Why this matters in 2026</h4>
+      <p style="font-size:13px;color:var(--text-dim);line-height:1.6;">Remote and hybrid work is the permanent norm. The companies that shaped modern messaging (Slack, Teams, Discord) all converged on the same insight: <strong>text + voice in the same interface</strong> beats switching between separate tools. Teams need spontaneous synchronous communication, and the gap between "text thread" and "scheduled call" is where productivity drops.</p>
+    </div>
+
+    <div class="tech-box reveal">
+      <h5>Technical Considerations</h5>
+      <p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-top:4px;">This needs research into real-time audio options for React Native. There are several approaches worth evaluating, from lower-level WebRTC bindings to managed SDKs that handle the infrastructure. The key questions are around iOS audio session handling (background playback, system integration) and keeping the experience fully native. The existing Reanimated and gesture handler setup would carry over well for the mini-player and controls.</p>
+    </div>
+
+    <div class="impact-section reveal">
+      <h5>Business Impact</h5>
+      <p>Voice features naturally increase engagement because they give users a reason to come back beyond reading text. Users who can talk in real time within the app are more likely to stay active daily. This is also the feature that most clearly moves the product from a messaging tool into a communication platform.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ PILLAR 3 ═══════════════════════ -->
+<div class="section-divider"></div>
+<section class="pillar-section" id="pillar-3">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Strategic Pillar 3</div>
+    </div>
+    <div class="pillar-header reveal">
+      <div class="pillar-number" style="color:var(--cyan);">03</div>
+      <div>
+        <div class="pillar-badge badge-proposed-cyan">Proposed</div>
+        <h2 class="pillar-title">Knowledge</h2>
+        <p class="pillar-subtitle">Shared Canvases: Collaborative Workspace</p>
+      </div>
+    </div>
+
+    <div class="ps-grid reveal">
+      <div class="ps-card problem">
+        <div class="ps-card-label">The Problem</div>
+        <p>Chat is inherently ephemeral. <strong>Decisions, links, specifications, and context get buried under new messages within hours.</strong> Teams compensate by juggling multiple tools (Notion, Docs, Confluence, Sheets, Figma), but the source of truth fragments and onboarding new team members becomes an archaeology exercise.</p>
+      </div>
+      <div class="ps-card solution">
+        <div class="ps-card-label">The Solution</div>
+        <p>A <strong>persistent, editable canvas pinned to each conversation</strong>. Similar to Slack Canvases or Notion pages, but embedded in the chat. Teams can collaboratively build meeting notes, project briefs, checklists, and decision logs right where the conversation happens. The canvas persists, versions, and stays accessible even as chat scrolls on.</p>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <h4 style="font-size:13px;font-weight:600;margin-bottom:12px;">Proposed features</h4>
+      <div class="feature-list">
+        <span class="feature-tag">Rich text editing</span>
+        <span class="feature-tag">Checklists &amp; task tracking</span>
+        <span class="feature-tag">Pinned resources &amp; links</span>
+        <span class="feature-tag">@mentions with notifications</span>
+        <span class="feature-tag">Version history</span>
+        <span class="feature-tag">Real-time multi-user editing</span>
+        <span class="feature-tag">Canvas templates</span>
+        <span class="feature-tag">Inline images &amp; code blocks</span>
+      </div>
+    </div>
+
+    <div class="reveal" style="margin-top:28px;padding:20px 24px;border-radius:12px;background:rgba(6,182,212,.06);border:1px solid rgba(6,182,212,.12);">
+      <h4 style="font-size:13px;font-weight:600;color:var(--cyan);margin-bottom:8px;">Why this matters in 2026</h4>
+      <p style="font-size:13px;color:var(--text-dim);line-height:1.6;">Tool consolidation is one of the defining trends. Teams don't want more apps; they want fewer, better-connected ones. <strong>The chat app that also handles persistent knowledge wins the workspace.</strong> Notion, Confluence, and Google Docs all live outside the conversation context. A canvas that lives inside chat eliminates the context switch and keeps decisions tied to the discussions that produced them.</p>
+    </div>
+
+    <div class="tech-box reveal">
+      <h5>Technical Considerations</h5>
+      <p style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-top:4px;">The main challenge is building a rich text editor that feels fully native on mobile. There are emerging React Native solutions for structured content editing. The offline-first approach would build on the existing MMKV persistence layer. This needs deeper research to find the right balance between editing capabilities and a native-quality experience.</p>
+    </div>
+
+    <div class="impact-section reveal">
+      <h5>Business Impact</h5>
+      <p>Canvases create <strong>sticky content</strong>: every checklist, every meeting note, every pinned decision is a reason for the team to come back. This drives retention through accumulated value. It also positions the app for expansion from "chat tool" to "team OS," which opens up enterprise use cases. Teams that store knowledge in your platform are far less likely to switch away.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ MATRIX ═══════════════════════ -->
+<div class="section-divider"></div>
+<section id="matrix">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Prioritization</div>
+      <h2 class="section-title">Effort vs. Impact</h2>
+      <p class="section-desc">How the three pillars compare. The AI Formatter is already shipped; Huddles and Canvases are the next strategic bets.</p>
+    </div>
+
+    <div class="matrix-wrap reveal">
+      <div class="matrix-bg">
+        <div class="matrix-label low-left">Low effort</div>
+        <div class="matrix-label high-right">High effort</div>
+        <div class="matrix-label low-top">High impact</div>
+      </div>
+      <div class="matrix-axis-x">Implementation Effort &rarr;</div>
+      <div class="matrix-axis-y">Business Impact &rarr;</div>
+
+      <!-- AI Formatter: low effort, medium-high impact -->
+      <div class="matrix-dot" style="left:18%;top:38%;--c:var(--green);">
+        <div class="dot-inner" style="background:var(--green);box-shadow:0 0 20px rgba(16,185,129,.4)"></div>
+        <div class="dot-ring" style="border-color:var(--green)"></div>
+        <div class="matrix-tooltip">
+          <h6 style="color:var(--green)">AI Formatter</h6>
+          <small>Low effort &middot; Already shipped</small>
+        </div>
+      </div>
+
+      <!-- Canvases: medium effort, high impact -->
+      <div class="matrix-dot" style="left:52%;top:24%;--c:var(--cyan);">
+        <div class="dot-inner" style="background:var(--cyan);box-shadow:0 0 20px rgba(6,182,212,.4)"></div>
+        <div class="dot-ring" style="border-color:var(--cyan)"></div>
+        <div class="matrix-tooltip">
+          <h6 style="color:var(--cyan)">Shared Canvases</h6>
+          <small>Medium effort &middot; High impact</small>
+        </div>
+      </div>
+
+      <!-- Huddles: high effort, very high impact -->
+      <div class="matrix-dot" style="left:78%;top:12%;--c:var(--purple);">
+        <div class="dot-inner" style="background:var(--purple);box-shadow:0 0 20px rgba(139,92,246,.4)"></div>
+        <div class="dot-ring" style="border-color:var(--purple)"></div>
+        <div class="matrix-tooltip">
+          <h6 style="color:var(--purple)">Huddles</h6>
+          <small>High effort &middot; Very high impact</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ ROADMAP ═══════════════════════ -->
+<div class="section-divider"></div>
+<section id="roadmap">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Implementation</div>
+      <h2 class="section-title">Roadmap</h2>
+      <p class="section-desc">A phased approach that delivers incremental value at every step while building toward the full vision.</p>
+    </div>
+
+    <div class="roadmap">
+      <div class="roadmap-item reveal">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-weeks">Phase 1</div>
+        <div class="roadmap-title">AI Formatter Refinements + Presence</div>
+        <div class="roadmap-desc">Polish the shipped PoC with prompt presets and response caching. Introduce typing indicators and online/offline presence in the chat header. This builds on what's already in place with minimal new infrastructure.</div>
+        <div class="roadmap-tasks">
+          <span class="roadmap-task">Prompt presets</span>
+          <span class="roadmap-task">Response caching</span>
+          <span class="roadmap-task">Typing indicators</span>
+          <span class="roadmap-task">Presence status</span>
+        </div>
+      </div>
+
+      <div class="roadmap-item reveal">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-weeks">Phase 2</div>
+        <div class="roadmap-title">Huddles MVP</div>
+        <div class="roadmap-desc">Audio-only 1:1 huddles. Start with the simplest possible implementation: one tap to start, one tap to join. A floating mini-player so users can keep chatting while in a huddle. Scope needs technical research first.</div>
+        <div class="roadmap-tasks">
+          <span class="roadmap-task">1:1 audio rooms</span>
+          <span class="roadmap-task">Mini-player</span>
+          <span class="roadmap-task">Join/leave flow</span>
+        </div>
+      </div>
+
+      <div class="roadmap-item reveal">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-weeks">Phase 3</div>
+        <div class="roadmap-title">Canvases MVP</div>
+        <div class="roadmap-desc">Basic rich-text canvas pinned to each conversation. Headings, lists, checklists. Offline-first, building on the existing MMKV persistence layer. Real-time sync is a stretch goal for MVP.</div>
+        <div class="roadmap-tasks">
+          <span class="roadmap-task">Rich text editor</span>
+          <span class="roadmap-task">Canvas panel UI</span>
+          <span class="roadmap-task">Offline persistence</span>
+        </div>
+      </div>
+
+      <div class="roadmap-item reveal">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-weeks">Phase 4</div>
+        <div class="roadmap-title">Polish &amp; Scale</div>
+        <div class="roadmap-desc">Expand huddles to group conversations. Add canvas collaboration features: multi-user editing, templates, @mentions. Performance optimization across all three pillars.</div>
+        <div class="roadmap-tasks">
+          <span class="roadmap-task">Group huddles</span>
+          <span class="roadmap-task">Collaborative editing</span>
+          <span class="roadmap-task">Templates</span>
+          <span class="roadmap-task">@mentions</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ WHY THESE THREE ═══════════════════════ -->
+<div class="section-divider"></div>
+<section id="why">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">Justification</div>
+      <h2 class="section-title">Why these three</h2>
+      <p class="section-desc">Each pillar addresses a different user need. Together, they compound into something larger than any single feature.</p>
+    </div>
+
+    <div class="equation reveal">
+      <div class="eq-term">
+        <h4 style="color:var(--green);">Intelligence</h4>
+        <small>Write better</small>
+      </div>
+      <div class="eq-op">+</div>
+      <div class="eq-term">
+        <h4 style="color:var(--purple);">Connectivity</h4>
+        <small>Talk instantly</small>
+      </div>
+      <div class="eq-op">+</div>
+      <div class="eq-term">
+        <h4 style="color:var(--cyan);">Knowledge</h4>
+        <small>Build together</small>
+      </div>
+      <div class="eq-op">=</div>
+      <div class="eq-result">
+        <h4>Team OS</h4>
+        <small>Not just chat. A platform.</small>
+      </div>
+    </div>
+
+    <div class="justify-grid">
+      <div class="justify-card reveal reveal-delay-1">
+        <h5 style="color:var(--green);">Feasibility First</h5>
+        <p>The AI Formatter is already shipped as a working proof of concept. It demonstrates technical execution and validates the "intelligence layer" thesis before investing in larger bets. Low risk, immediate value.</p>
+      </div>
+      <div class="justify-card reveal reveal-delay-2">
+        <h5 style="color:var(--purple);">Retention Driver</h5>
+        <p>Huddles target daily active engagement. Voice features create habits that text alone cannot: users come back not just to read, but to connect. This is the highest-impact bet in the portfolio.</p>
+      </div>
+      <div class="justify-card reveal reveal-delay-3">
+        <h5 style="color:var(--cyan);">Moat Builder</h5>
+        <p>Canvases create switching costs through accumulated content. Every checklist, every meeting note, every decision log makes the team more invested in the platform. This is how you build a product teams can't leave.</p>
+      </div>
+    </div>
+
+    <div class="reveal" style="margin-top:56px;">
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:16px;">What I considered but deprioritized</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="padding:18px 20px;border-radius:12px;border:1px solid rgba(255,255,255,.05);background:var(--bg-card);">
+          <h4 style="font-size:13px;font-weight:600;margin-bottom:6px;">Message Reactions</h4>
+          <p style="font-size:12px;color:var(--text-muted);line-height:1.5;">High UX value but incremental. Doesn't open new use cases. Better as a polish item than a strategic pillar.</p>
+        </div>
+        <div style="padding:18px 20px;border-radius:12px;border:1px solid rgba(255,255,255,.05);background:var(--bg-card);">
+          <h4 style="font-size:13px;font-weight:600;margin-bottom:6px;">Threaded Replies</h4>
+          <p style="font-size:12px;color:var(--text-muted);line-height:1.5;">Important for scale but adds complexity without changing the product category. Canvases solve the deeper problem (persistent context).</p>
+        </div>
+        <div style="padding:18px 20px;border-radius:12px;border:1px solid rgba(255,255,255,.05);background:var(--bg-card);">
+          <h4 style="font-size:13px;font-weight:600;margin-bottom:6px;">End-to-End Encryption</h4>
+          <p style="font-size:12px;color:var(--text-muted);line-height:1.5;">Critical for production but a security feature, not a product differentiator. Infrastructure work that doesn't directly drive engagement metrics.</p>
+        </div>
+        <div style="padding:18px 20px;border-radius:12px;border:1px solid rgba(255,255,255,.05);background:var(--bg-card);">
+          <h4 style="font-size:13px;font-weight:600;margin-bottom:6px;">Video Calls</h4>
+          <p style="font-size:12px;color:var(--text-muted);line-height:1.5;">Audio-first is the right MVP. Video adds a lot of complexity (camera, bandwidth, UI) for diminishing returns on the initial use case.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+<footer>
+  <div class="container">
+    <p class="sig reveal">Built with conviction that great products solve real problems.</p>
+    <p class="reveal" style="font-size:13px;">Ramiro Decono</p>
+    <small class="reveal">mobile.first &middot; React Native Technical Test &middot; Part 2</small>
+  </div>
+</footer>
+
+<script>
+// ═══════════════════════ INTERSECTION OBSERVER ═══════════════════════
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ═══════════════════════ COUNTER ANIMATION ═══════════════════════
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !entry.target.dataset.animated) {
+      entry.target.dataset.animated = 'true';
+      const el = entry.target;
+      const target = parseInt(el.dataset.count);
+      const suffix = el.dataset.suffix || '';
+      const prefix = el.dataset.prefix || '';
+      if (isNaN(target)) return;
+
+      const duration = 1200;
+      const start = performance.now();
+      const easeOut = t => 1 - Math.pow(1 - t, 3);
+
+      function tick(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const value = Math.round(easeOut(progress) * target);
+        el.textContent = prefix + value + suffix;
+        if (progress < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.stat-value[data-count]').forEach(el => counterObserver.observe(el));
+
+// ═══════════════════════ NAV DOTS ═══════════════════════
+const sections = document.querySelectorAll('section[id]');
+const navDots = document.querySelectorAll('.nav-dot');
+
+navDots.forEach(dot => {
+  dot.addEventListener('click', () => {
+    const target = document.getElementById(dot.dataset.section);
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  });
+});
+
+const navObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navDots.forEach(d => d.classList.remove('active'));
+      const dot = document.querySelector(`.nav-dot[data-section="${entry.target.id}"]`);
+      if (dot) dot.classList.add('active');
+    }
+  });
+}, { threshold: 0.3, rootMargin: '-20% 0px -20% 0px' });
+
+sections.forEach(section => navObserver.observe(section));
+
+// ═══════════════════════ PARALLAX HERO ORBS ═══════════════════════
+let ticking = false;
+window.addEventListener('scroll', () => {
+  if (!ticking) {
+    requestAnimationFrame(() => {
+      const scrollY = window.scrollY;
+      const orbs = document.querySelectorAll('.orb');
+      orbs.forEach((orb, i) => {
+        const speed = 0.15 + i * 0.05;
+        orb.style.transform = `translateY(${scrollY * speed}px)`;
+      });
+      ticking = false;
+    });
+    ticking = true;
+  }
+});
+</script>
+</body>
+</html>
