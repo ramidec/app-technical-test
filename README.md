@@ -13,7 +13,6 @@ A Slack-quality iOS chat app built with Expo and React Native. Features an expan
 
 - Node.js 18+
 - Xcode 15+ (for iOS simulator)
-- CocoaPods (`gem install cocoapods`)
 
 ### Installation
 
@@ -21,10 +20,15 @@ A Slack-quality iOS chat app built with Expo and React Native. Features an expan
 # 1. Install dependencies
 npm install
 
-# 2. Install iOS native pods
-cd ios && pod install && cd ..
+# 2. Start the Expo dev server
+npx expo start
 
-# 3. Start the app on iOS simulator
+# 3. Press 'i' to open in iOS simulator (or 's' for Expo Go)
+```
+
+Alternatively, to build and run directly on the iOS simulator:
+
+```bash
 npm run ios
 ```
 
