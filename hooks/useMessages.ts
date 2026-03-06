@@ -69,8 +69,5 @@ export function useMessages() {
   return {
     messages,
     isLoading: !isFullyLoaded && !hasCachedData, // skip skeleton when cache exists
-    isFetchingNextPage: query.isFetchingNextPage,
-    hasNextPage: query.hasNextPage,
-    fetchNextPage: query.fetchNextPage,
   };
 }

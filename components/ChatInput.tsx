@@ -142,7 +142,7 @@ const ChatInput = forwardRef<ChatInputRef, ChatInputProps>(
     const fullPaddingSV = useSharedValue(Math.max(insets.bottom, 8) + 8);
     useEffect(() => {
       fullPaddingSV.value = Math.max(insets.bottom, 8) + 8;
-    }, [insets.bottom]);
+    }, [insets.bottom, fullPaddingSV]);
     const kbPadding = 8;
 
     const panGesture = Gesture.Pan()

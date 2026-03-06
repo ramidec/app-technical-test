@@ -26,7 +26,7 @@ export default function BottomFade() {
   );
 }
 
-const styles = StyleSheet.create((theme) => ({
+const styles = StyleSheet.create(() => ({
   container: {
     position: 'absolute',
     bottom: 0,

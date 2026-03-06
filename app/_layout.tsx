@@ -21,13 +21,18 @@ try {
 }
 
 function ChatHeaderTitle() {
-  const { theme } = useAppTheme();
   const { contactName, contactOrg } = useContact();
+  const initials = contactName
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   return (
     <View style={styles.titlePill}>
       {/* Contact avatar */}
       <View style={styles.avatar}>
-        <Text style={styles.avatarText}>AV</Text>
+        <Text style={styles.avatarText}>{initials}</Text>
       </View>
       {/* Name + subtitle */}
       <View style={styles.textColumn}>

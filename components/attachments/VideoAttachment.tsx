@@ -5,6 +5,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { hapticImpact } from '@/utils/haptics';
 import { ImpactFeedbackStyle } from 'expo-haptics';
+import { useAppTheme } from '@/hooks/useAppTheme';
 import VideoPlayerModal from '@/components/VideoPlayerModal';
 import type { VideoAttachment as VideoAttachmentType } from '@/types/message';
 
@@ -22,6 +23,7 @@ function formatDuration(ms: number): string {
 }
 
 export default function VideoAttachment({ attachment }: Props) {
+  const { theme } = useAppTheme();
   const [modalVisible, setModalVisible] = useState(false);
 
   const aspectRatio = attachment.width / attachment.height;
@@ -45,7 +47,7 @@ export default function VideoAttachment({ attachment }: Props) {
           />
           <View style={styles.overlay}>
             <View style={styles.playCircle}>
-              <Ionicons name="play" size={24} color="#FFFFFF" />
+              <Ionicons name="play" size={24} color={theme.colors.textWhite} />
             </View>
           </View>
           <View style={styles.durationBadge}>

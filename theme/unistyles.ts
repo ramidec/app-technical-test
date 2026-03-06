@@ -70,7 +70,6 @@ export const lightTheme = {
 
     // Input bar
     inputBackground: "rgba(255,255,255,0.9)",
-    inputBorder: "#C7C7CC",
 
     // Send button
     sendIdle: "#F2F4F4",
@@ -82,12 +81,10 @@ export const lightTheme = {
     dragHandle: "#C7C7CC",
 
     // Borders & separators
-    border: "#E0E0E0",
     separator: "#D1D5D5",
 
     // Skeleton
     skeletonBase: "#DDE1E1",
-    skeletonHighlight: "#EEF0F0",
 
     // Gradient overlay (BottomFade)
     fadeStart: "rgba(255,255,255,0)",
@@ -149,9 +146,6 @@ export const lightTheme = {
     pdfBackground: "#F8F8F8",
     pdfHeaderBorder: "#E0E0E0",
 
-    // System blues
-    systemBlue: "#007AFF",
-
     // Emoji keyboard
     emojiKeyboardBg: "#F2F2F7",
     emojiKeyboardHeader: "#1C1C1E",
@@ -160,7 +154,6 @@ export const lightTheme = {
 
     // Misc
     black: "#000000",
-    white: "#FFFFFF",
     transparent: "transparent",
   },
   spacing,
@@ -190,7 +183,6 @@ export const darkTheme = {
 
     // Input bar
     inputBackground: "rgba(44,44,46,0.9)",
-    inputBorder: "#3A3A3C",
 
     // Send button
     sendIdle: "#48484A",
@@ -202,12 +194,10 @@ export const darkTheme = {
     dragHandle: "#48484A",
 
     // Borders & separators
-    border: "#3A3A3C",
     separator: "#3A3A3C",
 
     // Skeleton
     skeletonBase: "#3A3A3C",
-    skeletonHighlight: "#48484A",
 
     // Gradient overlay (BottomFade)
     fadeStart: "rgba(28,28,30,0)",
@@ -269,9 +259,6 @@ export const darkTheme = {
     pdfBackground: "#1C1C1E",
     pdfHeaderBorder: "#3A3A3C",
 
-    // System blues
-    systemBlue: "#0A84FF",
-
     // Emoji keyboard
     emojiKeyboardBg: "#2C2C2E",
     emojiKeyboardHeader: "#F2F4F4",
@@ -280,7 +267,6 @@ export const darkTheme = {
 
     // Misc
     black: "#000000",
-    white: "#FFFFFF",
     transparent: "transparent",
   },
   spacing,

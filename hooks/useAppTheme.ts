@@ -16,6 +16,6 @@ export function useAppTheme() {
   // re-renders when the device appearance changes.
   return {
     theme: rt.colorScheme === "dark" ? darkTheme : lightTheme,
-    colorScheme: rt.colorScheme as "dark" | "light",
+    colorScheme: rt.colorScheme === "dark" ? "dark" as const : "light" as const,
   };
 }

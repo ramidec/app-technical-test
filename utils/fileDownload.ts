@@ -7,6 +7,9 @@ import { Alert } from 'react-native';
  * collisions when two different URIs share the same filename.
  */
 function getCachePath(uri: string, fileName: string): string {
+  if (!FileSystem.cacheDirectory) {
+    throw new Error('Cache directory unavailable');
+  }
   // Simple hash to avoid collisions
   const hash = uri
     .split('')

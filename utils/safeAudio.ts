@@ -42,20 +42,15 @@ function useNoopAudioPlayerStatus(_player: AudioPlayer): AudioPlayerStatus {
 
 let _useAudioPlayer: (uri: string | undefined, opts?: { updateInterval?: number }) => AudioPlayer;
 let _useAudioPlayerStatus: (player: AudioPlayer) => AudioPlayerStatus;
-let _available = false;
-
 try {
   const mod = require('expo-audio');
   _useAudioPlayer = mod.useAudioPlayer;
   _useAudioPlayerStatus = mod.useAudioPlayerStatus;
-  _available = true;
 } catch {
   // Expo Go — provide no-op stubs
   _useAudioPlayer = useNoopAudioPlayer;
   _useAudioPlayerStatus = useNoopAudioPlayerStatus;
 }
-
-export const isAudioAvailable = _available;
 
 export const useAudioPlayer = _useAudioPlayer;
 export const useAudioPlayerStatus = _useAudioPlayerStatus;

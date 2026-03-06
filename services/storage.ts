@@ -27,7 +27,9 @@ export function setCachedMessages(messages: Message[]): void {
     storage.set(MESSAGES_KEY, JSON.stringify(messages));
     storage.set(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION);
   } catch (e) {
-    console.error('[storage] Failed to cache messages:', e);
+    if (__DEV__) {
+      console.error('[storage] Failed to cache messages:', e);
+    }
   }
 }
 

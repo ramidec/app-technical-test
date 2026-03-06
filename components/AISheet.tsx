@@ -7,7 +7,6 @@ import {
   Keyboard,
 } from "react-native";
 import { BottomSheetTextInput } from "@gorhom/bottom-sheet";
-import { TextInput } from "react-native-gesture-handler";
 import { ImpactFeedbackStyle } from "expo-haptics";
 import { StyleSheet } from "react-native-unistyles";
 import { useAppTheme } from "@/hooks/useAppTheme";
@@ -27,7 +26,6 @@ const AISheet = forwardRef<AppSheetRef, AISheetProps>(
     const { theme } = useAppTheme();
     const iconRef = useRef<GradientAIIconRef>(null);
     const sheetRef = useRef<AppSheetRef>(null);
-    const messageInputRef = useRef<TextInput>(null);
 
     const [draftMessage, setDraftMessage] = useState("");
     const [intent, setIntent] = useState("");
@@ -95,7 +93,6 @@ const AISheet = forwardRef<AppSheetRef, AISheetProps>(
           <View style={styles.section}>
             <Text style={styles.label}>Your message</Text>
             <BottomSheetTextInput
-              ref={messageInputRef}
               style={styles.messageInput}
               value={draftMessage}
               onChangeText={setDraftMessage}

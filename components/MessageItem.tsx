@@ -54,9 +54,9 @@ const MessageItem = React.memo(function MessageItem({ message, isLastInGroup }: 
             {message.content}
           </Text>
 
-          {message.attachments?.map((attachment, index) => (
+          {message.attachments?.map((attachment) => (
             <AttachmentRenderer
-              key={index}
+              key={attachment.uri}
               attachment={attachment}
               isUser={isUser}
             />

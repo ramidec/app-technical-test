@@ -82,7 +82,7 @@ const geminiProvider: AIProvider = {
     const data = await response.json();
     const result = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    if (!result) {
+    if (!result || typeof result !== 'string') {
       throw new Error("No response from Gemini");
     }
 

@@ -23,6 +23,8 @@ export function addRecentEmoji(emoji: string): void {
     const trimmed = filtered.slice(0, MAX_RECENTS);
     storage.set(RECENTS_KEY, JSON.stringify(trimmed));
   } catch (e) {
-    console.error('[emojiRecents] Failed to save recent emoji:', e);
+    if (__DEV__) {
+      console.error('[emojiRecents] Failed to save recent emoji:', e);
+    }
   }
 }
