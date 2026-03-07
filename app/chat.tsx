@@ -72,9 +72,27 @@ export default function ChatScreen() {
   // Scroll to end repeatedly behind skeleton — each call lets FlashList
   // render more items at the new position. setTimeout gives render time.
   const dataReady = !dataLoading && groupedMessages.length > 0;
+  // When skeleton is disabled, FlashList is not mounted until data arrives
+  // (groupedMessages switches from [] to full list). initialScrollIndex
+  // places it at the bottom on mount — no scroll loop needed.
+  // listReady gates maintainVisibleContentPosition so it doesn't fight
+  // the initial positioning.
+  const [listReady, setListReady] = useState(skeletonEnabled);
+
+  // Mark list ready once FlashList mounts with data (no-skeleton path)
+  useEffect(() => {
+    if (!skeletonEnabled && dataReady && !listReady) {
+      // Give FlashList one frame to apply initialScrollIndex, then enable
+      // maintainVisibleContentPosition and reveal.
+      const id = requestAnimationFrame(() => setListReady(true));
+      return () => cancelAnimationFrame(id);
+    }
+  }, [dataReady, skeletonEnabled, listReady]);
 
   useEffect(() => {
-    if (!dataReady || !minTimeElapsed || !showSkeleton) return;
+    if (!dataReady) return;
+    // ── Skeleton-enabled path: scroll behind skeleton, then dismiss ──
+    if (!minTimeElapsed || !showSkeleton) return;
 
     let timeoutId: ReturnType<typeof setTimeout>;
     let count = 0;
@@ -98,7 +116,7 @@ export default function ChatScreen() {
     scroll();
 
     return () => clearTimeout(timeoutId);
-  }, [dataReady, minTimeElapsed, showSkeleton]);
+  }, [dataReady, minTimeElapsed, showSkeleton, skeletonEnabled]);
 
   const scrollToEndInstant = useCallback(() => {
     flashListRef.current?.scrollToEnd({ animated: false });
@@ -216,7 +234,9 @@ export default function ChatScreen() {
                 style={styles.list}
                 contentContainerStyle={styles.listContent}
                 maintainVisibleContentPosition={
-                  showSkeleton ? undefined : { autoscrollToTopThreshold: 10 }
+                  showSkeleton || !listReady
+                    ? undefined
+                    : { autoscrollToTopThreshold: 10 }
                 }
                 keyboardDismissMode="on-drag"
                 keyboardShouldPersistTaps="handled"

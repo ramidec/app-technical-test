@@ -50,13 +50,9 @@ const SAMPLE_IMAGE_2: MessageAttachment = {
   height: 400,
 };
 
-// --- Lazy asset resolution (runs once on first fetch) ---
+// --- Asset resolution (starts eagerly on module import) ---
 
-let assetsResolved = false;
-
-async function ensureLocalAssets(): Promise<void> {
-  if (assetsResolved) return;
-
+async function resolveAssets(): Promise<void> {
   const [audioAsset, videoAsset, pdfAsset] = await Promise.all([
     Asset.fromModule(require('@/assets/media/sample-audio.mp3')).downloadAsync(),
     Asset.fromModule(require('@/assets/media/sample-video.mp4')).downloadAsync(),
@@ -66,9 +62,11 @@ async function ensureLocalAssets(): Promise<void> {
   (SAMPLE_AUDIO as AudioAttachment).uri = audioAsset.localUri ?? audioAsset.uri ?? '';
   (SAMPLE_VIDEO as VideoAttachment).uri = videoAsset.localUri ?? videoAsset.uri ?? '';
   (SAMPLE_FILE as FileAttachment).uri = pdfAsset.localUri ?? pdfAsset.uri ?? '';
-
-  assetsResolved = true;
 }
+
+// Fire immediately — resolved by the time the first fetch runs in most cases.
+// .catch prevents unhandled rejection if assets fail; fetchMessages handles it.
+const _assetReady = resolveAssets().catch(() => {});
 
 // --- Seed messages (newest first for cursor pagination) ---
 
@@ -224,16 +222,13 @@ const ALL_MESSAGES: Message[] = [
   },
 ];
 
-const PAGE_SIZE = 7;
+const PAGE_SIZE = 50;
 
 // --- Mock API ---
 
 export async function fetchMessages(cursor?: string): Promise<MessagesPage> {
-  // Resolve bundled test assets on first call
-  await ensureLocalAssets();
-
-  // Simulate network latency
-  await new Promise(resolve => setTimeout(resolve, 800));
+  // Wait for eagerly-started asset resolution; continue even if it failed
+  try { await _assetReady; } catch { /* attachment URIs stay as placeholders */ }
 
   let startIndex = 0;
   if (cursor) {
