@@ -41,10 +41,10 @@ export function useMessages() {
 
   // Merge fresh data with any user-sent messages from cache.
   // While loading, prefer cache to avoid visual flicker (messages disappearing
-  // then reappearing) and scroll jumps from list size changes.
+  // then reappearing) and scroll jumps from partial-page renders.
   const messages = useMemo(() => {
     if (!isFullyLoaded) {
-      return hasCachedData ? cachedRef.current! : freshMessages;
+      return hasCachedData ? cachedRef.current! : [];
     }
 
     // Fully loaded — merge any extra cached messages (user-sent) into fresh data

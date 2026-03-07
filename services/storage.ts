@@ -16,7 +16,12 @@ export function getCachedMessages(): Message[] | null {
     }
     const raw = storage.getString(MESSAGES_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as Message[];
+    const messages = JSON.parse(raw) as Message[];
+    // Recover stale 'sending' messages — the mutation context is lost after
+    // an app restart so these will never transition on their own.
+    return messages.map(m =>
+      m.status === 'sending' ? { ...m, status: 'sent' as const } : m,
+    );
   } catch {
     return null;
   }
